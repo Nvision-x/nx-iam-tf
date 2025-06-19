@@ -1,4 +1,4 @@
-cluster_name    = "eks-nx"
+cluster_name = "eks-nx"
 # Note: When enable_irsa = true, you must provide the oidc_issuer_url, which can be obtained from the output of the nx-infra-tf module.
 enable_irsa     = true
 oidc_issuer_url = "https://oidc.eks.<region>.amazonaws.com/id/<id>"
