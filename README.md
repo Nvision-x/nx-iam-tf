@@ -43,6 +43,8 @@ module "nx_iam" {
 
 To avoid dependency errors during the creation of the OIDC provider for IRSA, apply this module in two stages:
 
+![nx-tf-flow](images/nx-tf-flow.png)
+
 ### Step 1 – Initial Apply (IRSA disabled)
 
 ```
