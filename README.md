@@ -191,4 +191,3 @@ terraform apply
 | <a name="output_eks_cluster_iam_role_arn"></a> [eks\_cluster\_iam\_role\_arn](#output\_eks\_cluster\_iam\_role\_arn) | IAM Role ARN used by EKS cluster |
 | <a name="output_eks_managed_node_group_iam_role_arns"></a> [eks\_managed\_node\_group\_iam\_role\_arns](#output\_eks\_managed\_node\_group\_iam\_role\_arns) | IAM Role ARNs for all EKS managed node groups |
 | <a name="output_lb_controller_irsa_role_arn"></a> [lb\_controller\_irsa\_role\_arn](#output\_lb\_controller\_irsa\_role\_arn) | IAM Role ARN for AWS Load Balancer Controller |
-| <a name="output_oidc_provider_arn"></a> [oidc\_provider\_arn](#output\_oidc\_provider\_arn) | The ARN of the OIDC Provider if `enable_irsa = true` |
