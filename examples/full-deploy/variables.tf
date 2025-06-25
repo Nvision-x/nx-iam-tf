@@ -21,3 +21,30 @@ variable "eks_managed_node_groups" {
     name = string
   }))
 }
+
+variable "create_bastion_role" {
+  description = "Whether to create the IAM role and instance profile for Bastion"
+  type        = bool
+  default     = false
+}
+
+variable "autoscaler_role_name" {
+  description = "Name of IAM role for cluster autoscaler"
+  type        = string
+}
+
+variable "autoscaler_service_account" {
+  description = "Service account name for cluster autoscaler"
+  type        = string
+}
+
+variable "lb_controller_role_name" {
+  description = "Name of IAM role for load balancer controller"
+  type        = string
+}
+
+variable "lb_controller_service_account" {
+  description = "Service account name for load balancer controller"
+  type        = string
+}
+

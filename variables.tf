@@ -269,3 +269,38 @@ variable "eks_managed_node_group_defaults" {
   type        = any
   default     = {}
 }
+
+
+variable "create_bastion_role" {
+  description = "Whether to create the IAM role and instance profile for Bastion"
+  type        = bool
+  default     = false
+}
+
+# Cluster Autoscaler and Load Balancer Controller Roles 
+
+variable "namespace" {
+  description = "Namespace where resources will be created"
+  type        = string
+  default     = "kube-system"
+}
+
+variable "autoscaler_role_name" {
+  description = "Name of IAM role for cluster autoscaler"
+  type        = string
+}
+
+variable "autoscaler_service_account" {
+  description = "Service account name for cluster autoscaler"
+  type        = string
+}
+
+variable "lb_controller_role_name" {
+  description = "Name of IAM role for load balancer controller"
+  type        = string
+}
+
+variable "lb_controller_service_account" {
+  description = "Service account name for load balancer controller"
+  type        = string
+}

@@ -9,9 +9,9 @@ This Terraform module provisions IAM roles and policies required to support Amaz
 - IAM role for EKS cluster
 - IAM roles for managed node groups
 - OIDC provider support for IRSA (IAM Roles for Service Accounts)
-- Cluster encryption IAM policy support
-- Optional AWS Outpost configuration
-- Support for IPv6 CNI IAM policy
+- Cluster Autoscaler IAM role
+- LoadBalancer Controller IAM Role
+- Bastion Instance IAM Role and Instance Profile
 - Full tagging support for IAM roles and policies
 
 ---
@@ -35,7 +35,15 @@ module "nx_iam" {
         name = "eks-nx-2"
     }
   }
-  region = "us-east-1"
+  region                        = "us-east-1"
+  region                        = "us-east-2"
+  create_bastion_role           = true
+  
+  # Autoscaler & ALB Controller
+  autoscaler_role_name          = "cluster-autoscaler-nx"
+  autoscaler_service_account    = "cluster-autoscaler"
+  lb_controller_role_name       = "aws-load-balancer-controller-nx"
+  lb_controller_service_account = "aws-load-balancer-controller"
 }
 ```
 
@@ -49,13 +57,12 @@ To avoid dependency errors during the creation of the OIDC provider for IRSA, ap
 
 ```
 enable_irsa     = false
-oidc_issuer_url = ""
 
 ```
 ```
 terraform apply
 ```
-Then, supply the outputs from this module to the nx-infra-tf (infrastructure module) and apply it. After the infrastructure is created, extract the oidc_issuer_url from the outputs of nx-infra-tf.
+Then, supply the outputs from this module to the nx-infra-tf (infrastructure module) and apply it. After the infrastructure is created, extract the oidc_provider_url from the outputs of nx-infra-tf.
 
 ### Step 2 – Final Apply (IRSA enabled)
 
@@ -73,7 +80,10 @@ terraform apply
 
 ## Requirements
 
-No requirements.
+| Name      | Version   |
+|-----------|-----------|
+| Terraform | >= 1.0    |
+| AWS CLI   | >= 2.0    |
 
 ## Providers
 
@@ -86,22 +96,30 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_cluster_autoscaler_irsa_role"></a> [cluster\_autoscaler\_irsa\_role](#module\_cluster\_autoscaler\_irsa\_role) | terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks | 5.58.0 |
 | <a name="module_eks_managed_node_group"></a> [eks\_managed\_node\_group](#module\_eks\_managed\_node\_group) | ./modules/eks-managed-node-group | n/a |
+| <a name="module_lb_controller_irsa_role"></a> [lb\_controller\_irsa\_role](#module\_lb\_controller\_irsa\_role) | terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [aws_iam_instance_profile.bastion_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_openid_connect_provider.oidc_provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
 | [aws_iam_policy.cluster_encryption](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
 | [aws_iam_policy.custom](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_policy.eks_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) | resource |
+| [aws_iam_role.bastion_eks_admin](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.eks_auto](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy_attachment.additional](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.bastion_describe_cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.cluster_encryption](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.custom](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.eks_auto](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.eks_auto_additional](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.eks_cluster_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.eks_service_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.assume_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
@@ -115,6 +133,8 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_attach_cluster_encryption_policy"></a> [attach\_cluster\_encryption\_policy](#input\_attach\_cluster\_encryption\_policy) | Indicates whether or not to attach an additional policy for the cluster IAM role to utilize the encryption key provided | `bool` | `true` | no |
+| <a name="input_autoscaler_role_name"></a> [autoscaler\_role\_name](#input\_autoscaler\_role\_name) | Name of IAM role for cluster autoscaler | `string` | n/a | yes |
+| <a name="input_autoscaler_service_account"></a> [autoscaler\_service\_account](#input\_autoscaler\_service\_account) | Service account name for cluster autoscaler | `string` | n/a | yes |
 | <a name="input_cluster_compute_config"></a> [cluster\_compute\_config](#input\_cluster\_compute\_config) | Configuration block for the cluster compute configuration | `any` | `{}` | no |
 | <a name="input_cluster_encryption_config"></a> [cluster\_encryption\_config](#input\_cluster\_encryption\_config) | Configuration block with encryption configuration for the cluster. To disable secret encryption, set this value to `{}` | `any` | <pre>{<br/>  "resources": [<br/>    "secrets"<br/>  ]<br/>}</pre> | no |
 | <a name="input_cluster_encryption_policy_description"></a> [cluster\_encryption\_policy\_description](#input\_cluster\_encryption\_policy\_description) | Description of the cluster encryption policy created | `string` | `"Cluster encryption policy to allow cluster role to utilize CMK provided"` | no |
@@ -124,6 +144,7 @@ No requirements.
 | <a name="input_cluster_encryption_policy_use_name_prefix"></a> [cluster\_encryption\_policy\_use\_name\_prefix](#input\_cluster\_encryption\_policy\_use\_name\_prefix) | Determines whether cluster encryption policy name (`cluster_encryption_policy_name`) is used as a prefix | `bool` | `true` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the EKS cluster | `string` | `""` | no |
 | <a name="input_create"></a> [create](#input\_create) | Determines whether to create EKS managed node group or not | `bool` | `true` | no |
+| <a name="input_create_bastion_role"></a> [create\_bastion\_role](#input\_create\_bastion\_role) | Whether to create the IAM role and instance profile for Bastion | `bool` | `false` | no |
 | <a name="input_create_cni_ipv6_iam_policy"></a> [create\_cni\_ipv6\_iam\_policy](#input\_create\_cni\_ipv6\_iam\_policy) | Determines whether to create an [`AmazonEKS_CNI_IPv6_Policy`](https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html#cni-iam-role-create-ipv6-policy) | `bool` | `false` | no |
 | <a name="input_create_iam_role"></a> [create\_iam\_role](#input\_create\_iam\_role) | Determines whether an IAM role is created for the cluster | `bool` | `true` | no |
 | <a name="input_create_node_iam_role"></a> [create\_node\_iam\_role](#input\_create\_node\_iam\_role) | Determines whether an EKS Auto node IAM role is created | `bool` | `true` | no |
@@ -143,6 +164,9 @@ No requirements.
 | <a name="input_iam_role_tags"></a> [iam\_role\_tags](#input\_iam\_role\_tags) | A map of additional tags to add to the IAM role created | `map(string)` | `{}` | no |
 | <a name="input_iam_role_use_name_prefix"></a> [iam\_role\_use\_name\_prefix](#input\_iam\_role\_use\_name\_prefix) | Determines whether the IAM role name (`iam_role_name`) is used as a prefix | `bool` | `true` | no |
 | <a name="input_include_oidc_root_ca_thumbprint"></a> [include\_oidc\_root\_ca\_thumbprint](#input\_include\_oidc\_root\_ca\_thumbprint) | Determines whether to include the root CA thumbprint in the OpenID Connect (OIDC) identity provider's server certificate(s) | `bool` | `true` | no |
+| <a name="input_lb_controller_role_name"></a> [lb\_controller\_role\_name](#input\_lb\_controller\_role\_name) | Name of IAM role for load balancer controller | `string` | n/a | yes |
+| <a name="input_lb_controller_service_account"></a> [lb\_controller\_service\_account](#input\_lb\_controller\_service\_account) | Service account name for load balancer controller | `string` | n/a | yes |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace where resources will be created | `string` | `"kube-system"` | no |
 | <a name="input_node_iam_role_additional_policies"></a> [node\_iam\_role\_additional\_policies](#input\_node\_iam\_role\_additional\_policies) | Additional policies to be added to the EKS Auto node IAM role | `map(string)` | `{}` | no |
 | <a name="input_node_iam_role_description"></a> [node\_iam\_role\_description](#input\_node\_iam\_role\_description) | Description of the EKS Auto node IAM role | `string` | `null` | no |
 | <a name="input_node_iam_role_name"></a> [node\_iam\_role\_name](#input\_node\_iam\_role\_name) | Name to use on the EKS Auto node IAM role created | `string` | `null` | no |
@@ -160,7 +184,11 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_bastion_eks_admin_role_arn"></a> [bastion\_eks\_admin\_role\_arn](#output\_bastion\_eks\_admin\_role\_arn) | ARN of the Bastion EC2 IAM role, if created |
+| <a name="output_bastion_iam_instance_profile_name"></a> [bastion\_iam\_instance\_profile\_name](#output\_bastion\_iam\_instance\_profile\_name) | IAM instance profile name for the Bastion EC2 instance |
+| <a name="output_cluster_autoscaler_irsa_role_arn"></a> [cluster\_autoscaler\_irsa\_role\_arn](#output\_cluster\_autoscaler\_irsa\_role\_arn) | IAM Role ARN for Cluster Autoscaler |
 | <a name="output_eks_auto_node_iam_role_arn"></a> [eks\_auto\_node\_iam\_role\_arn](#output\_eks\_auto\_node\_iam\_role\_arn) | IAM Role ARN used by EKS Auto Node Group |
 | <a name="output_eks_cluster_iam_role_arn"></a> [eks\_cluster\_iam\_role\_arn](#output\_eks\_cluster\_iam\_role\_arn) | IAM Role ARN used by EKS cluster |
 | <a name="output_eks_managed_node_group_iam_role_arns"></a> [eks\_managed\_node\_group\_iam\_role\_arns](#output\_eks\_managed\_node\_group\_iam\_role\_arns) | IAM Role ARNs for all EKS managed node groups |
+| <a name="output_lb_controller_irsa_role_arn"></a> [lb\_controller\_irsa\_role\_arn](#output\_lb\_controller\_irsa\_role\_arn) | IAM Role ARN for AWS Load Balancer Controller |
 | <a name="output_oidc_provider_arn"></a> [oidc\_provider\_arn](#output\_oidc\_provider\_arn) | The ARN of the OIDC Provider if `enable_irsa = true` |

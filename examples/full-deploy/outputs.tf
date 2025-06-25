@@ -16,8 +16,22 @@ output "eks_managed_node_group_iam_role_arns" {
   value       = module.nx-iam.eks_managed_node_group_iam_role_arns
 }
 
-# OIDC provider ARN used for IRSA (if enabled)
-output "oidc_provider_arn" {
-  description = "OIDC provider ARN for IRSA (returned only if enable_irsa = true)"
-  value       = try(module.nx-iam.oidc_provider_arn, null)
+output "bastion_eks_admin_role_arn" {
+  description = "IAM Role ARN for Bastion EC2 to access EKS"
+  value       = try(module.nx-iam.bastion_eks_admin_role_arn, null)
+}
+
+output "bastion_iam_instance_profile_name" {
+  value       = var.create_bastion_role ? module.nx-iam.bastion_iam_instance_profile_name : null
+  description = "IAM instance profile name for the Bastion EC2 instance"
+}
+
+output "lb_controller_irsa_role_arn" {
+  description = "IAM Role ARN for AWS Load Balancer Controller"
+  value       = try(module.nx-iam.lb_controller_irsa_role_arn, null)
+}
+
+output "cluster_autoscaler_irsa_role_arn" {
+  description = "IAM Role ARN for Cluster Autoscaler"
+  value       = try(module.nx-iam.cluster_autoscaler_irsa_role_arn, null)
 }
