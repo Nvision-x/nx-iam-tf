@@ -35,7 +35,7 @@ resource "aws_iam_instance_profile" "bastion_profile" {
 }
 
 resource "aws_iam_policy" "eks_access" {
-  name        = "BastionEKSCluster"
+  name        = "BastionEKSCluster-${var.cluster_name}"
   path        = "/"
   description = "Allow Operations on EKS cluster"
 
