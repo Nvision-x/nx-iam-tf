@@ -176,3 +176,15 @@ resource "aws_iam_role_policy_attachment" "eks_nodegroup_ebs" {
   policy_arn = aws_iam_policy.ebs_permissions.arn
   role       = aws_iam_role.this[0].id
 }
+
+# Attach Amazon S3 Full Access
+resource "aws_iam_role_policy_attachment" "ec2_s3_full_access" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  role       = aws_iam_role.this[0].name
+}
+
+# Attach Amazon SSM Managed Instance Core
+resource "aws_iam_role_policy_attachment" "ec2_ssm_core" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.this[0].name
+}

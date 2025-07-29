@@ -27,6 +27,13 @@ resource "aws_iam_role_policy_attachment" "eks_service_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 }
 
+# Attach Amazon SSM Managed Instance Core
+resource "aws_iam_role_policy_attachment" "bastion_ssm_core" {
+  count      = var.create_bastion_role ? 1 : 0
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.bastion_eks_admin[0].name
+}
+
 resource "aws_iam_instance_profile" "bastion_profile" {
   count = var.create_bastion_role ? 1 : 0
 
