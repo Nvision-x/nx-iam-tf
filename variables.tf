@@ -308,3 +308,25 @@ variable "lb_controller_service_account" {
   type        = string
   default     = ""
 }
+
+################################################################################
+# OpenSearch Configuration
+################################################################################
+
+variable "enable_opensearch" {
+  description = "Enable OpenSearch integration"
+  type        = bool
+  default     = false
+}
+
+variable "domain_name" {
+  description = "OpenSearch domain name"
+  type        = string
+  default     = ""
+}
+
+variable "region" {
+  description = "AWS region for OpenSearch domain"
+  type        = string
+  default     = ""
+}
