@@ -61,6 +61,7 @@ resource "aws_iam_policy" "eks_access" {
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_describe_cluster" {
+  count      = var.create_bastion_role ? 1 : 0
   role       = aws_iam_role.bastion_eks_admin[0].name
   policy_arn = aws_iam_policy.eks_access.arn
 }
