@@ -35,4 +35,9 @@ output "cluster_autoscaler_irsa_role_arn" {
   value       = try(module.cluster_autoscaler_irsa_role[0].iam_role_arn, null)
 }
 
+output "ebs_csi_irsa_role_arn" {
+  description = "IAM role ARN for aws-ebs-csi-driver service account"
+  value       = aws_iam_role.ebs_csi_irsa.arn
+}
+
 
