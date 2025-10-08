@@ -35,4 +35,9 @@ output "cluster_autoscaler_irsa_role_arn" {
   value       = try(module.cluster_autoscaler_irsa_role[0].iam_role_arn, null)
 }
 
+output "ebs_csi_irsa_role_arn" {
+  value       = var.enable_irsa ? aws_iam_role.ebs_csi_irsa[0].arn : null
+  description = "EBS CSI IRSA role ARN (only when enable_irsa=true)"
+}
+
 
