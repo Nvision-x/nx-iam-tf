@@ -42,6 +42,7 @@ resource "aws_iam_instance_profile" "bastion_profile" {
 }
 
 resource "aws_iam_policy" "eks_access" {
+  count       = var.create_bastion_role ? 1 : 0
   name        = "BastionEKSCluster-${var.cluster_name}"
   path        = "/"
   description = "Allow Operations on EKS cluster"
@@ -54,7 +55,12 @@ resource "aws_iam_policy" "eks_access" {
         Action = [
           "eks:*"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:eks:${var.region}:${data.aws_caller_identity.current[0].account_id}:cluster/${var
+          .cluster_name}",
+          "arn:aws:eks:${var.region}:${data.aws_caller_identity.current[0].account_id}:cluster/${var
+          .cluster_name}/*"
+        ]
       }
     ]
   })
@@ -63,7 +69,7 @@ resource "aws_iam_policy" "eks_access" {
 resource "aws_iam_role_policy_attachment" "bastion_describe_cluster" {
   count      = var.create_bastion_role ? 1 : 0
   role       = aws_iam_role.bastion_eks_admin[0].name
-  policy_arn = aws_iam_policy.eks_access.arn
+  policy_arn = aws_iam_policy.eks_access[0].arn
 }
 
 # IAM policy to allow bastion to manage OpenSearch snapshots
@@ -77,8 +83,8 @@ resource "aws_iam_policy" "bastion_opensearch_snapshot" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = "iam:PassRole"
+        Effect   = "Allow"
+        Action   = "iam:PassRole"
         Resource = aws_iam_role.opensearch_snapshot[0].arn
       }
     ]

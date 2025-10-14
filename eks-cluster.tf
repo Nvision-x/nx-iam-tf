@@ -177,10 +177,17 @@ resource "aws_iam_policy" "cluster_encryption" {
           "kms:Decrypt",
           "kms:ListGrants",
           "kms:DescribeKey",
+          "kms:CreateGrant",
         ]
         Effect = "Allow"
-        # Resource = var.create_kms_key ? module.kms.key_arn : var.cluster_encryption_config.provider_key_arn
-        Resource = "*" // TODO fix this. 
+        # Restricted to KMS keys in the same region and account only
+        # Matches keys with alias pattern: alias/eks/<cluster-name>
+        Resource = "arn:${local.partition}:kms:*:${data.aws_caller_identity.current[0].account_id}:key/*"
+        Condition = {
+          StringLike = {
+            "kms:RequestAlias" = "alias/eks/${var.cluster_name}"
+          }
+        }
       },
     ]
   })
