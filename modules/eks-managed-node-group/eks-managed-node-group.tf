@@ -177,9 +177,88 @@ resource "aws_iam_role_policy_attachment" "eks_nodegroup_ebs" {
   role       = aws_iam_role.this[0].id
 }
 
-# Attach Amazon S3 Full Access
-resource "aws_iam_role_policy_attachment" "ec2_s3_full_access" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+# S3 Access for application and cross-account scanning
+resource "aws_iam_policy" "s3_access" {
+  name        = "s3-access-${local.iam_role_name}"
+  description = "Policy for EKS nodes to access nvisionx buckets and scan cross-account S3 buckets"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # Full access to nvisionx operational buckets
+      {
+        Sid    = "NvisionxBucketsFullAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketVersioning",
+          "s3:ListBucketVersions",
+          "s3:ListBucketMultipartUploads"
+        ]
+        Resource = "arn:${data.aws_partition.current.partition}:s3:::nvisionx*"
+      },
+      {
+        Sid    = "NvisionxObjectsFullAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:GetObjectAttributes",
+          "s3:GetObjectTagging",
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+          "s3:PutObjectTagging",
+          "s3:DeleteObject",
+          "s3:DeleteObjectVersion",
+          "s3:AbortMultipartUpload",
+          "s3:ListMultipartUploadParts"
+        ]
+        Resource = "arn:${data.aws_partition.current.partition}:s3:::nvisionx*/*"
+      },
+      # Read-only access for cross-account scanning (requires bucket policies on client side)
+      {
+        Sid    = "CrossAccountScanListBuckets"
+        Effect = "Allow"
+        Action = [
+          "s3:ListAllMyBuckets",
+          "s3:GetBucketLocation"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "CrossAccountScanBucketMetadata"
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketVersioning",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketPolicyStatus",
+          "s3:GetBucketAcl",
+          "s3:GetBucketPublicAccessBlock",
+          "s3:GetBucketTagging"
+        ]
+        Resource = "arn:${data.aws_partition.current.partition}:s3:::*"
+      },
+      {
+        Sid    = "CrossAccountScanObjects"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:GetObjectMetadata",
+          "s3:GetObjectAttributes",
+          "s3:GetObjectTagging",
+          "s3:GetObjectAcl"
+        ]
+        Resource = "arn:${data.aws_partition.current.partition}:s3:::*/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "s3_access" {
+  policy_arn = aws_iam_policy.s3_access.arn
   role       = aws_iam_role.this[0].name
 }
 

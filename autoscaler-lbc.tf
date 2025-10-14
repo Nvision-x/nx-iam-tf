@@ -1,9 +1,9 @@
 # Load Balancer Controller
 module "lb_controller_irsa_role" {
-  count  = var.enable_irsa ? 1 : 0
-  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  count   = var.enable_irsa ? 1 : 0
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.58.0"
-  
+
   role_name                              = var.lb_controller_role_name
   attach_load_balancer_controller_policy = true
 
@@ -15,6 +15,50 @@ module "lb_controller_irsa_role" {
   }
 }
 
+# Scoped policy for Cluster Autoscaler
+resource "aws_iam_policy" "cluster_autoscaler" {
+  count       = var.enable_irsa ? 1 : 0
+  name        = "${var.cluster_name}-cluster-autoscaler"
+  description = "Scoped permissions for EKS Cluster Autoscaler"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ClusterAutoscalerDescribe"
+        Effect = "Allow"
+        Action = [
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "autoscaling:DescribeLaunchConfigurations",
+          "autoscaling:DescribeScalingActivities",
+          "autoscaling:DescribeTags",
+          "ec2:DescribeInstanceTypes",
+          "ec2:DescribeLaunchTemplateVersions",
+          "ec2:DescribeImages",
+          "ec2:GetInstanceTypesFromInstanceRequirements",
+          "eks:DescribeNodegroup"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ClusterAutoscalerModify"
+        Effect = "Allow"
+        Action = [
+          "autoscaling:SetDesiredCapacity",
+          "autoscaling:TerminateInstanceInAutoScalingGroup"
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "autoscaling:ResourceTag/k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+          }
+        }
+      }
+    ]
+  })
+}
+
 module "cluster_autoscaler_irsa_role" {
   count   = var.enable_irsa ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -22,9 +66,9 @@ module "cluster_autoscaler_irsa_role" {
 
   role_name = var.autoscaler_role_name
 
-  # Attach AutoScalingFullAccess Policy
+  # Attach scoped autoscaler policy
   role_policy_arns = {
-    autoscaling = "arn:aws:iam::aws:policy/AutoScalingFullAccess"
+    autoscaling = aws_iam_policy.cluster_autoscaler[0].arn
   }
 
   oidc_providers = {
