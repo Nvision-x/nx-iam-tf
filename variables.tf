@@ -330,3 +330,19 @@ variable "region" {
   type        = string
   default     = ""
 }
+
+################################################################################
+# PostgreSQL Backup Configuration
+################################################################################
+
+variable "enable_postgres" {
+  description = "Enable PostgreSQL/RDS backup integration"
+  type        = bool
+  default     = false
+}
+
+variable "postgres_identifier" {
+  description = "PostgreSQL/RDS database identifier"
+  type        = string
+  default     = ""
+}
