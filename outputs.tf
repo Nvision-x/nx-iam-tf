@@ -40,4 +40,9 @@ output "ebs_csi_irsa_role_arn" {
   description = "EBS CSI IRSA role ARN (only when enable_irsa=true)"
 }
 
+output "postgres_backup_role_arn" {
+  value       = var.enable_postgres && var.enable_irsa ? aws_iam_role.postgres_backup[0].arn : null
+  description = "Postgres backup IAM role ARN (only when enable_irsa=true and enable_postgres=true)"
+}
+
 

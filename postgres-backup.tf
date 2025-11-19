@@ -1,11 +1,12 @@
 # IAM role for PostgreSQL/RDS backups
+# Only created when IRSA is enabled in this module
 resource "aws_iam_role" "postgres_backup" {
-  count = var.enable_postgres ? 1 : 0
+  count = var.enable_postgres && var.enable_irsa ? 1 : 0
   name  = "${var.postgres_identifier}-backup-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Effect = "Allow"
         Principal = {
@@ -13,7 +14,21 @@ resource "aws_iam_role" "postgres_backup" {
         }
         Action = "sts:AssumeRole"
       }
-    ]
+      ],
+      var.enable_irsa ? [{
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.oidc_provider[0].arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${replace(var.oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:${var.postgres_backup_namespace}:${var.postgres_backup_service_account}"
+            "${replace(var.oidc_issuer_url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }] : []
+    )
   })
 
   tags = var.tags
@@ -21,7 +36,7 @@ resource "aws_iam_role" "postgres_backup" {
 
 # IAM policy for PostgreSQL backup role - includes S3 and RDS permissions
 resource "aws_iam_policy" "postgres_backup" {
-  count = var.enable_postgres ? 1 : 0
+  count = var.enable_postgres && var.enable_irsa ? 1 : 0
   name  = "${var.postgres_identifier}-backup-policy"
 
   policy = jsonencode({
@@ -90,7 +105,7 @@ resource "aws_iam_policy" "postgres_backup" {
 
 # Attach policy to role
 resource "aws_iam_role_policy_attachment" "postgres_backup" {
-  count      = var.enable_postgres ? 1 : 0
+  count      = var.enable_postgres && var.enable_irsa ? 1 : 0
   role       = aws_iam_role.postgres_backup[0].name
   policy_arn = aws_iam_policy.postgres_backup[0].arn
 }

@@ -346,3 +346,15 @@ variable "postgres_identifier" {
   type        = string
   default     = ""
 }
+
+variable "postgres_backup_service_account" {
+  description = "Kubernetes service account name for PostgreSQL backup"
+  type        = string
+  default     = "databases-postgres-backup-sa"
+}
+
+variable "postgres_backup_namespace" {
+  description = "Kubernetes namespace for PostgreSQL backup service account"
+  type        = string
+  default     = "default"
+}
