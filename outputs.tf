@@ -40,4 +40,9 @@ output "ebs_csi_irsa_role_arn" {
   description = "EBS CSI IRSA role ARN (only when enable_irsa=true)"
 }
 
+output "bedrock_irsa_role_arn" {
+  description = "IAM Role ARN for Amazon Bedrock access from EKS pods"
+  value       = try(module.bedrock_irsa_role[0].iam_role_arn, null)
+}
+
 

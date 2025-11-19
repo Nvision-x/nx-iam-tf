@@ -330,3 +330,43 @@ variable "region" {
   type        = string
   default     = ""
 }
+
+################################################################################
+# Amazon Bedrock Configuration
+################################################################################
+
+variable "enable_bedrock_access" {
+  description = "Enable Bedrock IRSA role creation for EKS pods to access Amazon Bedrock"
+  type        = bool
+  default     = false
+}
+
+variable "bedrock_role_name" {
+  description = "Name of IAM role for Bedrock access"
+  type        = string
+  default     = ""
+}
+
+variable "bedrock_service_accounts" {
+  description = "List of namespace:serviceaccount pairs that can assume the Bedrock role. Example: ['default:bedrock-app', 'production:ai-service']"
+  type        = list(string)
+  default     = []
+}
+
+variable "bedrock_allowed_model_arns" {
+  description = <<-EOF
+    List of Bedrock model ARNs allowed for access. Examples:
+    - All models in all regions: ["arn:aws:bedrock:*::foundation-model/*"]
+    - All models in specific region: ["arn:aws:bedrock:us-east-1::foundation-model/*"]
+    - Specific model family: ["arn:aws:bedrock:*::foundation-model/anthropic.claude*"]
+    - Specific model version: ["arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"]
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*::foundation-model/*"]
+}
+
+variable "bedrock_allowed_regions" {
+  description = "List of AWS regions where Bedrock API calls are allowed. Provides additional security control beyond model ARNs."
+  type        = list(string)
+  default     = ["us-east-1", "us-west-2"]
+}
