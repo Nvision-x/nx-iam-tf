@@ -330,3 +330,31 @@ variable "region" {
   type        = string
   default     = ""
 }
+
+################################################################################
+# PostgreSQL Backup Configuration
+################################################################################
+
+variable "enable_postgres" {
+  description = "Enable PostgreSQL/RDS backup integration"
+  type        = bool
+  default     = false
+}
+
+variable "postgres_identifier" {
+  description = "PostgreSQL/RDS database identifier"
+  type        = string
+  default     = ""
+}
+
+variable "postgres_backup_service_account" {
+  description = "Kubernetes service account name for PostgreSQL backup"
+  type        = string
+  default     = "databases-postgres-backup-sa"
+}
+
+variable "postgres_backup_namespace" {
+  description = "Kubernetes namespace for PostgreSQL backup service account"
+  type        = string
+  default     = "default"
+}
