@@ -337,12 +337,19 @@ variable "region" {
 
 variable "enable_bedrock_access" {
   description = "Enable Bedrock IRSA role creation for EKS pods to access Amazon Bedrock. Default is FALSE (disabled)."
+# PostgreSQL Backup Configuration
+################################################################################
+
+variable "enable_postgres" {
+  description = "Enable PostgreSQL/RDS backup integration"
   type        = bool
   default     = false
 }
 
 variable "bedrock_role_name" {
   description = "Name of IAM role for Bedrock access. Required if enable_bedrock_access is true."
+variable "postgres_identifier" {
+  description = "PostgreSQL/RDS database identifier"
   type        = string
   default     = ""
 }
@@ -509,4 +516,14 @@ variable "bedrock_allowed_model_arns" {
   description = "DEPRECATED: Use bedrock_custom_model_arns with bedrock_use_custom_model_arns = true instead. This variable is maintained for backward compatibility."
   type        = list(string)
   default     = null
+variable "postgres_backup_service_account" {
+  description = "Kubernetes service account name for PostgreSQL backup"
+  type        = string
+  default     = "databases-postgres-backup-sa"
+}
+
+variable "postgres_backup_namespace" {
+  description = "Kubernetes namespace for PostgreSQL backup service account"
+  type        = string
+  default     = "default"
 }

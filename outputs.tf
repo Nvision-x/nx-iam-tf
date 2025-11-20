@@ -43,6 +43,9 @@ output "ebs_csi_irsa_role_arn" {
 output "bedrock_irsa_role_arn" {
   description = "IAM Role ARN for Amazon Bedrock access from EKS pods"
   value       = try(module.bedrock_irsa_role[0].iam_role_arn, null)
+output "postgres_backup_role_arn" {
+  value       = var.enable_postgres && var.enable_irsa ? aws_iam_role.postgres_backup[0].arn : null
+  description = "Postgres backup IAM role ARN (only when enable_irsa=true and enable_postgres=true)"
 }
 
 
