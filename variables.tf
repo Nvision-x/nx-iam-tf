@@ -337,19 +337,12 @@ variable "region" {
 
 variable "enable_bedrock_access" {
   description = "Enable Bedrock IRSA role creation for EKS pods to access Amazon Bedrock. Default is FALSE (disabled)."
-# PostgreSQL Backup Configuration
-################################################################################
-
-variable "enable_postgres" {
-  description = "Enable PostgreSQL/RDS backup integration"
   type        = bool
   default     = false
 }
 
 variable "bedrock_role_name" {
   description = "Name of IAM role for Bedrock access. Required if enable_bedrock_access is true."
-variable "postgres_identifier" {
-  description = "PostgreSQL/RDS database identifier"
   type        = string
   default     = ""
 }
@@ -378,8 +371,8 @@ variable "bedrock_capabilities" {
     Default includes basic invocation, streaming, and model catalog access.
     Note: If Bedrock is disabled (enable_bedrock_access = false), this setting is ignored.
   EOF
-  type    = list(string)
-  default = ["invoke", "streaming", "model_catalog"]
+  type        = list(string)
+  default     = ["invoke", "streaming", "model_catalog"]
 
   validation {
     condition = alltrue([
@@ -411,8 +404,8 @@ variable "bedrock_excluded_providers" {
     Example: ["anthropic", "cohere"] will block Anthropic and Cohere models
     Note: This is ignored if bedrock_use_custom_model_arns = true
   EOF
-  type    = list(string)
-  default = []
+  type        = list(string)
+  default     = []
 
   validation {
     condition = alltrue([
@@ -435,8 +428,8 @@ variable "bedrock_allowed_providers" {
     Note: bedrock_excluded_providers is applied after this filter
     Note: This is ignored if bedrock_use_custom_model_arns = true
   EOF
-  type    = list(string)
-  default = []
+  type        = list(string)
+  default     = []
 
   validation {
     condition = alltrue([
@@ -482,8 +475,8 @@ variable "bedrock_agent_arns" {
     - All agents: ["arn:aws:bedrock:*:*:agent/*"]
     - Specific agent: ["arn:aws:bedrock:us-east-1:123456789012:agent/AGENT123"]
   EOF
-  type    = list(string)
-  default = ["arn:aws:bedrock:*:*:agent/*"]
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:agent/*"]
 }
 
 variable "bedrock_knowledge_base_arns" {
@@ -493,8 +486,8 @@ variable "bedrock_knowledge_base_arns" {
     - All knowledge bases: ["arn:aws:bedrock:*:*:knowledge-base/*"]
     - Specific KB: ["arn:aws:bedrock:us-east-1:123456789012:knowledge-base/KB123"]
   EOF
-  type    = list(string)
-  default = ["arn:aws:bedrock:*:*:knowledge-base/*"]
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:knowledge-base/*"]
 }
 
 variable "bedrock_guardrail_arns" {
@@ -504,18 +497,22 @@ variable "bedrock_guardrail_arns" {
     - All guardrails: ["arn:aws:bedrock:*:*:guardrail/*"]
     - Specific guardrail: ["arn:aws:bedrock:us-east-1:123456789012:guardrail/GUARD123"]
   EOF
-  type    = list(string)
-  default = ["arn:aws:bedrock:*:*:guardrail/*"]
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:guardrail/*"]
 }
 
-################################################################################
-# Deprecated - Maintained for backward compatibility
-################################################################################
+variable "enable_postgres" {
+  description = "Flag to enable/disable PostgreSQL and related resources"
+  type        = bool
+  default     = true
+}
 
-variable "bedrock_allowed_model_arns" {
-  description = "DEPRECATED: Use bedrock_custom_model_arns with bedrock_use_custom_model_arns = true instead. This variable is maintained for backward compatibility."
-  type        = list(string)
-  default     = null
+variable "db_identifier" {
+  description = "The identifier for the RDS instance"
+  type        = string
+  default     = ""
+}
+
 variable "postgres_backup_service_account" {
   description = "Kubernetes service account name for PostgreSQL backup"
   type        = string
