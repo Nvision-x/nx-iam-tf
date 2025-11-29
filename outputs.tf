@@ -45,4 +45,7 @@ output "postgres_backup_role_arn" {
   description = "Postgres backup IAM role ARN (only when enable_irsa=true and enable_postgres=true)"
 }
 
-
+output "vpc_flow_logs_role_arn" {
+  value       = try(aws_iam_role.vpc_flow_logs[0].arn, null)
+  description = "IAM Role ARN for VPC flow logs"
+}
