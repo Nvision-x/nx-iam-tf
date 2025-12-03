@@ -332,17 +332,183 @@ variable "region" {
 }
 
 ################################################################################
-# PostgreSQL Backup Configuration
+# Amazon Bedrock Configuration
 ################################################################################
 
-variable "enable_postgres" {
-  description = "Enable PostgreSQL/RDS backup integration"
+variable "enable_bedrock_access" {
+  description = "Enable Bedrock IRSA role creation for EKS pods to access Amazon Bedrock. Default is FALSE (disabled)."
   type        = bool
   default     = false
 }
 
-variable "postgres_identifier" {
-  description = "PostgreSQL/RDS database identifier"
+variable "bedrock_role_name" {
+  description = "Name of IAM role for Bedrock access. Required if enable_bedrock_access is true."
+  type        = string
+  default     = ""
+}
+
+variable "bedrock_service_accounts" {
+  description = "List of namespace:serviceaccount pairs that can assume the Bedrock role. Required if enable_bedrock_access is true. Example: ['default:bedrock-app', 'production:ai-service']"
+  type        = list(string)
+  default     = []
+}
+
+################################################################################
+# Bedrock Capabilities - Control which API operations are allowed
+################################################################################
+
+variable "bedrock_capabilities" {
+  description = <<-EOF
+    List of Bedrock capabilities to enable (only applies when enable_bedrock_access = true).
+    Available options:
+    - "invoke"          : Basic model invocation (InvokeModel)
+    - "streaming"       : Streaming responses (InvokeModelWithResponseStream)
+    - "model_catalog"   : Read model information (ListFoundationModels, GetFoundationModel)
+    - "agents"          : Bedrock Agents runtime (InvokeAgent)
+    - "knowledge_bases" : Knowledge base access (Retrieve, RetrieveAndGenerate)
+    - "guardrails"      : Apply guardrails (ApplyGuardrail)
+
+    Default includes basic invocation, streaming, and model catalog access.
+    Note: If Bedrock is disabled (enable_bedrock_access = false), this setting is ignored.
+  EOF
+  type        = list(string)
+  default     = ["invoke", "streaming", "model_catalog"]
+
+  validation {
+    condition = alltrue([
+      for cap in var.bedrock_capabilities :
+      contains(["invoke", "streaming", "model_catalog", "agents", "knowledge_bases", "guardrails"], cap)
+    ])
+    error_message = "Invalid capability. Valid options: invoke, streaming, model_catalog, agents, knowledge_bases, guardrails"
+  }
+}
+
+################################################################################
+# Bedrock Model Provider Filtering (only applies when enable_bedrock_access = true)
+################################################################################
+
+variable "bedrock_excluded_providers" {
+  description = <<-EOF
+    List of model providers to EXCLUDE from access. Useful when you want all providers except specific ones.
+    Only applies when enable_bedrock_access = true.
+
+    Available providers:
+    - "anthropic"     : Anthropic Claude models
+    - "amazon"        : Amazon Titan models
+    - "ai21"          : AI21 Labs Jurassic models
+    - "cohere"        : Cohere Command models
+    - "meta"          : Meta Llama models
+    - "mistral"       : Mistral AI models
+    - "stability"     : Stability AI image models
+
+    Example: ["anthropic", "cohere"] will block Anthropic and Cohere models
+    Note: This is ignored if bedrock_use_custom_model_arns = true
+  EOF
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for provider in var.bedrock_excluded_providers :
+      contains(["anthropic", "amazon", "ai21", "cohere", "meta", "mistral", "stability"], provider)
+    ])
+    error_message = "Invalid provider. Valid options: anthropic, amazon, ai21, cohere, meta, mistral, stability"
+  }
+}
+
+variable "bedrock_allowed_providers" {
+  description = <<-EOF
+    List of model providers to ALLOW access to. If empty, all providers are allowed (except those in excluded_providers).
+    If specified, ONLY these providers will be accessible.
+    Only applies when enable_bedrock_access = true.
+
+    Available providers: anthropic, amazon, ai21, cohere, meta, mistral, stability
+
+    Example: ["amazon", "ai21"] will ONLY allow Amazon and AI21 models
+    Note: bedrock_excluded_providers is applied after this filter
+    Note: This is ignored if bedrock_use_custom_model_arns = true
+  EOF
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for provider in var.bedrock_allowed_providers :
+      contains(["anthropic", "amazon", "ai21", "cohere", "meta", "mistral", "stability"], provider)
+    ])
+    error_message = "Invalid provider. Valid options: anthropic, amazon, ai21, cohere, meta, mistral, stability"
+  }
+}
+
+variable "bedrock_use_custom_model_arns" {
+  description = "Set to true to use bedrock_custom_model_arns instead of auto-generated ARNs based on provider filters. Use this for advanced scenarios requiring specific model versions."
+  type        = bool
+  default     = false
+}
+
+variable "bedrock_custom_model_arns" {
+  description = <<-EOF
+    Custom list of Bedrock model ARNs (only used if bedrock_use_custom_model_arns = true). Examples:
+    - All models in all regions: ["arn:aws:bedrock:*::foundation-model/*"]
+    - All models in specific region: ["arn:aws:bedrock:us-east-1::foundation-model/*"]
+    - Specific model family: ["arn:aws:bedrock:*::foundation-model/anthropic.claude*"]
+    - Specific model version: ["arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"]
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*::foundation-model/*"]
+}
+
+variable "bedrock_allowed_regions" {
+  description = "List of AWS regions where Bedrock API calls are allowed. Provides additional security control beyond model ARNs."
+  type        = list(string)
+  default     = ["us-east-1", "us-west-2"]
+}
+
+################################################################################
+# Bedrock Advanced Features - ARNs for Agents, Knowledge Bases, Guardrails
+################################################################################
+
+variable "bedrock_agent_arns" {
+  description = <<-EOF
+    List of Bedrock Agent ARNs allowed for access (required if 'agents' capability is enabled).
+    Examples:
+    - All agents: ["arn:aws:bedrock:*:*:agent/*"]
+    - Specific agent: ["arn:aws:bedrock:us-east-1:123456789012:agent/AGENT123"]
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:agent/*"]
+}
+
+variable "bedrock_knowledge_base_arns" {
+  description = <<-EOF
+    List of Bedrock Knowledge Base ARNs allowed for access (required if 'knowledge_bases' capability is enabled).
+    Examples:
+    - All knowledge bases: ["arn:aws:bedrock:*:*:knowledge-base/*"]
+    - Specific KB: ["arn:aws:bedrock:us-east-1:123456789012:knowledge-base/KB123"]
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:knowledge-base/*"]
+}
+
+variable "bedrock_guardrail_arns" {
+  description = <<-EOF
+    List of Bedrock Guardrail ARNs (required if 'guardrails' capability is enabled).
+    Examples:
+    - All guardrails: ["arn:aws:bedrock:*:*:guardrail/*"]
+    - Specific guardrail: ["arn:aws:bedrock:us-east-1:123456789012:guardrail/GUARD123"]
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:guardrail/*"]
+}
+
+variable "enable_postgres" {
+  description = "Flag to enable/disable PostgreSQL and related resources"
+  type        = bool
+  default     = true
+}
+
+variable "db_identifier" {
+  description = "The identifier for the RDS instance"
   type        = string
   default     = ""
 }
