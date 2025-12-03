@@ -524,3 +524,13 @@ variable "postgres_backup_namespace" {
   type        = string
   default     = "default"
 }
+
+################################################################################
+# VPC Flow Logs IAM Role
+################################################################################
+
+variable "create_vpc_flow_logs_role" {
+  description = "Whether to create the IAM role for VPC flow logs"
+  type        = bool
+  default     = false
+}
