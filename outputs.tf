@@ -26,100 +26,42 @@ output "bastion_iam_instance_profile_name" {
 }
 
 ################################################################################
-# Pod Identity Outputs (migrated from IRSA)
+# Pod Identity IAM Role Outputs
 ################################################################################
 
-output "lb_controller_iam_role_arn" {
-  description = "IAM Role ARN for AWS Load Balancer Controller (Pod Identity)"
-  value       = try(module.pod_identity[0].lb_controller_iam_role_arn, null)
-}
-
-# Backward compatibility alias
-output "lb_controller_irsa_role_arn" {
-  description = "DEPRECATED: Use lb_controller_iam_role_arn instead. IAM Role ARN for AWS Load Balancer Controller"
-  value       = try(module.pod_identity[0].lb_controller_iam_role_arn, null)
+output "ebs_csi_iam_role_arn" {
+  description = "EBS CSI IAM role ARN"
+  value       = try(aws_iam_role.ebs_csi[0].arn, null)
 }
 
 output "cluster_autoscaler_iam_role_arn" {
-  description = "IAM Role ARN for Cluster Autoscaler (Pod Identity)"
-  value       = try(module.pod_identity[0].cluster_autoscaler_iam_role_arn, null)
+  description = "Cluster Autoscaler IAM role ARN"
+  value       = try(aws_iam_role.cluster_autoscaler[0].arn, null)
 }
 
-# Backward compatibility alias
-output "cluster_autoscaler_irsa_role_arn" {
-  description = "DEPRECATED: Use cluster_autoscaler_iam_role_arn instead. IAM Role ARN for Cluster Autoscaler"
-  value       = try(module.pod_identity[0].cluster_autoscaler_iam_role_arn, null)
-}
-
-output "ebs_csi_iam_role_arn" {
-  description = "EBS CSI IAM role ARN (Pod Identity)"
-  value       = try(module.pod_identity[0].ebs_csi_iam_role_arn, null)
-}
-
-# Backward compatibility alias
-output "ebs_csi_irsa_role_arn" {
-  description = "DEPRECATED: Use ebs_csi_iam_role_arn instead. EBS CSI IAM role ARN"
-  value       = try(module.pod_identity[0].ebs_csi_iam_role_arn, null)
-}
-
-output "bedrock_iam_role_arn" {
-  description = "IAM Role ARN for Amazon Bedrock access from EKS pods (Pod Identity)"
-  value       = try(module.pod_identity[0].bedrock_iam_role_arn, null)
-}
-
-# Backward compatibility alias
-output "bedrock_irsa_role_arn" {
-  description = "DEPRECATED: Use bedrock_iam_role_arn instead. IAM Role ARN for Amazon Bedrock access"
-  value       = try(module.pod_identity[0].bedrock_iam_role_arn, null)
-}
-
-output "bedrock_iam_policy_arn" {
-  description = "IAM Policy ARN for Amazon Bedrock access (contains capability and provider filtering)"
-  value       = try(module.pod_identity[0].bedrock_iam_policy_arn, null)
+output "lb_controller_iam_role_arn" {
+  description = "AWS Load Balancer Controller IAM role ARN"
+  value       = try(aws_iam_role.lb_controller[0].arn, null)
 }
 
 output "postgres_backup_iam_role_arn" {
-  description = "Postgres backup IAM role ARN (Pod Identity)"
-  value       = try(module.pod_identity[0].postgres_backup_iam_role_arn, null)
+  description = "Postgres backup IAM role ARN"
+  value       = try(aws_iam_role.postgres_backup[0].arn, null)
 }
-
-# Backward compatibility alias
-output "postgres_backup_role_arn" {
-  description = "DEPRECATED: Use postgres_backup_iam_role_arn instead. Postgres backup IAM role ARN"
-  value       = try(module.pod_identity[0].postgres_backup_iam_role_arn, null)
-}
-
-################################################################################
-# Application S3 Access Outputs
-################################################################################
 
 output "app_s3_iam_role_arn" {
-  description = "Application S3 Access IAM role ARN (Pod Identity)"
-  value       = try(module.pod_identity[0].app_s3_iam_role_arn, null)
+  description = "Application S3 Access IAM role ARN"
+  value       = try(aws_iam_role.app_s3[0].arn, null)
 }
 
-output "app_s3_iam_role_name" {
-  description = "Application S3 Access IAM role name"
-  value       = try(module.pod_identity[0].app_s3_iam_role_name, null)
+output "bedrock_iam_role_arn" {
+  description = "Bedrock IAM role ARN"
+  value       = try(aws_iam_role.bedrock[0].arn, null)
 }
 
-output "app_s3_iam_policy_arn" {
-  description = "Application S3 Access IAM policy ARN"
-  value       = try(module.pod_identity[0].app_s3_iam_policy_arn, null)
-}
-
-output "app_s3_pod_identity_associations" {
-  description = "Map of Application S3 Access Pod Identity associations"
-  value       = try(module.pod_identity[0].app_s3_pod_identity_associations, {})
-}
-
-################################################################################
-# OIDC Provider Output (kept for backward compatibility, may be removed in future)
-################################################################################
-
-output "oidc_provider_arn" {
-  description = "DEPRECATED: OIDC Provider ARN. Pod Identity doesn't require OIDC. Kept for backward compatibility."
-  value       = try(aws_iam_openid_connect_provider.oidc_provider[0].arn, null)
+output "bedrock_iam_policy_arn" {
+  description = "Bedrock IAM policy ARN"
+  value       = try(aws_iam_policy.bedrock[0].arn, null)
 }
 
 ################################################################################
