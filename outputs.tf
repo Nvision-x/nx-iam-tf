@@ -90,6 +90,30 @@ output "postgres_backup_role_arn" {
 }
 
 ################################################################################
+# Application S3 Access Outputs
+################################################################################
+
+output "app_s3_iam_role_arn" {
+  description = "Application S3 Access IAM role ARN (Pod Identity)"
+  value       = try(module.pod_identity[0].app_s3_iam_role_arn, null)
+}
+
+output "app_s3_iam_role_name" {
+  description = "Application S3 Access IAM role name"
+  value       = try(module.pod_identity[0].app_s3_iam_role_name, null)
+}
+
+output "app_s3_iam_policy_arn" {
+  description = "Application S3 Access IAM policy ARN"
+  value       = try(module.pod_identity[0].app_s3_iam_policy_arn, null)
+}
+
+output "app_s3_pod_identity_associations" {
+  description = "Map of Application S3 Access Pod Identity associations"
+  value       = try(module.pod_identity[0].app_s3_pod_identity_associations, {})
+}
+
+################################################################################
 # OIDC Provider Output (kept for backward compatibility, may be removed in future)
 ################################################################################
 

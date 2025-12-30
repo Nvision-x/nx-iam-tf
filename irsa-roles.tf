@@ -54,5 +54,11 @@ module "pod_identity" {
   lb_controller_namespace       = var.namespace
   lb_controller_service_account = var.lb_controller_service_account
 
+  # Application S3 Access configuration
+  enable_app_s3_access      = var.enable_app_s3_access
+  app_s3_role_name          = var.app_s3_role_name
+  app_s3_service_accounts   = var.app_s3_service_accounts
+  app_s3_bucket_arn_pattern = var.app_s3_bucket_arn_pattern
+
   tags = var.tags
 }
