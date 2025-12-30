@@ -25,40 +25,82 @@ output "bastion_iam_instance_profile_name" {
   description = "IAM instance profile name for the Bastion EC2 instance"
 }
 
+################################################################################
+# Pod Identity Outputs (migrated from IRSA)
+################################################################################
+
+output "lb_controller_iam_role_arn" {
+  description = "IAM Role ARN for AWS Load Balancer Controller (Pod Identity)"
+  value       = try(module.pod_identity[0].lb_controller_iam_role_arn, null)
+}
+
+# Backward compatibility alias
 output "lb_controller_irsa_role_arn" {
-  description = "IAM Role ARN for AWS Load Balancer Controller"
-  value       = try(module.irsa[0].lb_controller_iam_role_arn, null)
+  description = "DEPRECATED: Use lb_controller_iam_role_arn instead. IAM Role ARN for AWS Load Balancer Controller"
+  value       = try(module.pod_identity[0].lb_controller_iam_role_arn, null)
 }
 
+output "cluster_autoscaler_iam_role_arn" {
+  description = "IAM Role ARN for Cluster Autoscaler (Pod Identity)"
+  value       = try(module.pod_identity[0].cluster_autoscaler_iam_role_arn, null)
+}
+
+# Backward compatibility alias
 output "cluster_autoscaler_irsa_role_arn" {
-  description = "IAM Role ARN for Cluster Autoscaler"
-  value       = try(module.irsa[0].cluster_autoscaler_iam_role_arn, null)
+  description = "DEPRECATED: Use cluster_autoscaler_iam_role_arn instead. IAM Role ARN for Cluster Autoscaler"
+  value       = try(module.pod_identity[0].cluster_autoscaler_iam_role_arn, null)
 }
 
+output "ebs_csi_iam_role_arn" {
+  description = "EBS CSI IAM role ARN (Pod Identity)"
+  value       = try(module.pod_identity[0].ebs_csi_iam_role_arn, null)
+}
+
+# Backward compatibility alias
 output "ebs_csi_irsa_role_arn" {
-  value       = try(module.irsa[0].ebs_csi_iam_role_arn, null)
-  description = "EBS CSI IRSA role ARN (only when enable_irsa=true)"
+  description = "DEPRECATED: Use ebs_csi_iam_role_arn instead. EBS CSI IAM role ARN"
+  value       = try(module.pod_identity[0].ebs_csi_iam_role_arn, null)
 }
 
+output "bedrock_iam_role_arn" {
+  description = "IAM Role ARN for Amazon Bedrock access from EKS pods (Pod Identity)"
+  value       = try(module.pod_identity[0].bedrock_iam_role_arn, null)
+}
+
+# Backward compatibility alias
 output "bedrock_irsa_role_arn" {
-  description = "IAM Role ARN for Amazon Bedrock access from EKS pods"
-  value       = try(module.irsa[0].bedrock_iam_role_arn, null)
+  description = "DEPRECATED: Use bedrock_iam_role_arn instead. IAM Role ARN for Amazon Bedrock access"
+  value       = try(module.pod_identity[0].bedrock_iam_role_arn, null)
 }
 
 output "bedrock_iam_policy_arn" {
-  description = "IAM Policy ARN for Amazon Bedrock access (contains capability and provider filtering). Only created when enable_bedrock_access=true and enable_irsa=true."
-  value       = try(module.irsa[0].bedrock_iam_policy_arn, null)
+  description = "IAM Policy ARN for Amazon Bedrock access (contains capability and provider filtering)"
+  value       = try(module.pod_identity[0].bedrock_iam_policy_arn, null)
 }
 
+output "postgres_backup_iam_role_arn" {
+  description = "Postgres backup IAM role ARN (Pod Identity)"
+  value       = try(module.pod_identity[0].postgres_backup_iam_role_arn, null)
+}
+
+# Backward compatibility alias
+output "postgres_backup_role_arn" {
+  description = "DEPRECATED: Use postgres_backup_iam_role_arn instead. Postgres backup IAM role ARN"
+  value       = try(module.pod_identity[0].postgres_backup_iam_role_arn, null)
+}
+
+################################################################################
+# OIDC Provider Output (kept for backward compatibility, may be removed in future)
+################################################################################
+
 output "oidc_provider_arn" {
-  description = "OIDC Provider ARN (only when enable_irsa=true in IAM separation deployment pattern)"
+  description = "DEPRECATED: OIDC Provider ARN. Pod Identity doesn't require OIDC. Kept for backward compatibility."
   value       = try(aws_iam_openid_connect_provider.oidc_provider[0].arn, null)
 }
 
-output "postgres_backup_role_arn" {
-  value       = try(module.irsa[0].postgres_backup_iam_role_arn, null)
-  description = "Postgres backup IAM role ARN (only when enable_irsa=true and enable_postgres=true)"
-}
+################################################################################
+# VPC Flow Logs
+################################################################################
 
 output "vpc_flow_logs_role_arn" {
   value       = try(aws_iam_role.vpc_flow_logs[0].arn, null)
