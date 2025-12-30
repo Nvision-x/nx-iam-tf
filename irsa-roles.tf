@@ -4,7 +4,7 @@
 ################################################################################
 
 module "pod_identity" {
-  source = "git::https://github.com/Nvision-x/nx-shared-irsa-tf.git?ref=NXE-1415"
+  source = "git::https://github.com/Nvision-x/nx-shared-irsa-tf.git?ref=3f7ed94"
   count  = var.create ? 1 : 0
 
   # Common parameters - Pod Identity only needs cluster_name
