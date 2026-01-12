@@ -51,12 +51,6 @@ variable "cluster_compute_config" {
   default     = {}
 }
 
-variable "oidc_issuer_url" {
-  description = "OIDC issuer URL from the EKS cluster"
-  type        = string
-  default     = ""
-}
-
 ################################################################################
 # EKS IPV6 CNI Policy
 ################################################################################
@@ -65,34 +59,6 @@ variable "create_cni_ipv6_iam_policy" {
   description = "Determines whether to create an [`AmazonEKS_CNI_IPv6_Policy`](https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html#cni-iam-role-create-ipv6-policy)"
   type        = bool
   default     = false
-}
-
-################################################################################
-# IRSA
-################################################################################
-
-variable "enable_irsa" {
-  description = "Determines whether to create an OpenID Connect Provider for EKS to enable IRSA"
-  type        = bool
-  default     = true
-}
-
-variable "openid_connect_audiences" {
-  description = "List of OpenID Connect audience client IDs to add to the IRSA provider"
-  type        = list(string)
-  default     = []
-}
-
-variable "include_oidc_root_ca_thumbprint" {
-  description = "Determines whether to include the root CA thumbprint in the OpenID Connect (OIDC) identity provider's server certificate(s)"
-  type        = bool
-  default     = true
-}
-
-variable "custom_oidc_thumbprints" {
-  description = "Additional list of server certificate thumbprints for the OpenID Connect (OIDC) identity provider's server certificate(s)"
-  type        = list(string)
-  default     = []
 }
 
 ################################################################################
@@ -336,7 +302,7 @@ variable "region" {
 ################################################################################
 
 variable "enable_bedrock_access" {
-  description = "Enable Bedrock IRSA role creation for EKS pods to access Amazon Bedrock. Default is FALSE (disabled)."
+  description = "Enable Bedrock IAM role creation for EKS pods to access Amazon Bedrock via Pod Identity. Default is FALSE (disabled)."
   type        = bool
   default     = false
 }
@@ -523,6 +489,40 @@ variable "postgres_backup_namespace" {
   description = "Kubernetes namespace for PostgreSQL backup service account"
   type        = string
   default     = "default"
+}
+
+################################################################################
+# Application S3 Access Configuration
+################################################################################
+
+variable "enable_app_s3_access" {
+  description = "Enable Application S3 Access Pod Identity role for application pods that need S3 access"
+  type        = bool
+  default     = false
+}
+
+variable "app_s3_role_name" {
+  description = "Name of IAM role for application S3 access. If empty, defaults to {cluster_name}-app-s3-access"
+  type        = string
+  default     = ""
+}
+
+variable "app_s3_service_accounts" {
+  description = <<-EOF
+    List of namespace:serviceaccount pairs for application S3 access.
+    Example: ["default:archiver", "default:enricher", "default:sweeper"]
+  EOF
+  type        = list(string)
+  default     = []
+}
+
+variable "app_s3_bucket_arn_pattern" {
+  description = <<-EOF
+    S3 bucket ARN pattern for application access. Supports wildcards.
+    Example: "arn:aws:s3:::nvisionx*" for all buckets starting with nvisionx
+  EOF
+  type        = string
+  default     = "arn:aws:s3:::nvisionx*"
 }
 
 ################################################################################

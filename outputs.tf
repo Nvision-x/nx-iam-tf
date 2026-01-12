@@ -25,40 +25,48 @@ output "bastion_iam_instance_profile_name" {
   description = "IAM instance profile name for the Bastion EC2 instance"
 }
 
-output "lb_controller_irsa_role_arn" {
-  description = "IAM Role ARN for AWS Load Balancer Controller"
-  value       = try(module.irsa[0].lb_controller_iam_role_arn, null)
+################################################################################
+# Pod Identity IAM Role Outputs
+################################################################################
+
+output "ebs_csi_iam_role_arn" {
+  description = "EBS CSI IAM role ARN"
+  value       = try(aws_iam_role.ebs_csi[0].arn, null)
 }
 
-output "cluster_autoscaler_irsa_role_arn" {
-  description = "IAM Role ARN for Cluster Autoscaler"
-  value       = try(module.irsa[0].cluster_autoscaler_iam_role_arn, null)
+output "cluster_autoscaler_iam_role_arn" {
+  description = "Cluster Autoscaler IAM role ARN"
+  value       = try(aws_iam_role.cluster_autoscaler[0].arn, null)
 }
 
-output "ebs_csi_irsa_role_arn" {
-  value       = try(module.irsa[0].ebs_csi_iam_role_arn, null)
-  description = "EBS CSI IRSA role ARN (only when enable_irsa=true)"
+output "lb_controller_iam_role_arn" {
+  description = "AWS Load Balancer Controller IAM role ARN"
+  value       = try(aws_iam_role.lb_controller[0].arn, null)
 }
 
-output "bedrock_irsa_role_arn" {
-  description = "IAM Role ARN for Amazon Bedrock access from EKS pods"
-  value       = try(module.irsa[0].bedrock_iam_role_arn, null)
+output "postgres_backup_iam_role_arn" {
+  description = "Postgres backup IAM role ARN"
+  value       = try(aws_iam_role.postgres_backup[0].arn, null)
+}
+
+output "app_s3_iam_role_arn" {
+  description = "Application S3 Access IAM role ARN"
+  value       = try(aws_iam_role.app_s3[0].arn, null)
+}
+
+output "bedrock_iam_role_arn" {
+  description = "Bedrock IAM role ARN"
+  value       = try(aws_iam_role.bedrock[0].arn, null)
 }
 
 output "bedrock_iam_policy_arn" {
-  description = "IAM Policy ARN for Amazon Bedrock access (contains capability and provider filtering). Only created when enable_bedrock_access=true and enable_irsa=true."
-  value       = try(module.irsa[0].bedrock_iam_policy_arn, null)
+  description = "Bedrock IAM policy ARN"
+  value       = try(aws_iam_policy.bedrock[0].arn, null)
 }
 
-output "oidc_provider_arn" {
-  description = "OIDC Provider ARN (only when enable_irsa=true in IAM separation deployment pattern)"
-  value       = try(aws_iam_openid_connect_provider.oidc_provider[0].arn, null)
-}
-
-output "postgres_backup_role_arn" {
-  value       = try(module.irsa[0].postgres_backup_iam_role_arn, null)
-  description = "Postgres backup IAM role ARN (only when enable_irsa=true and enable_postgres=true)"
-}
+################################################################################
+# VPC Flow Logs
+################################################################################
 
 output "vpc_flow_logs_role_arn" {
   value       = try(aws_iam_role.vpc_flow_logs[0].arn, null)
