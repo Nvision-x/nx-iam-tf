@@ -405,27 +405,35 @@ locals {
   ]
 
   # Build policy statements based on capabilities
-  bedrock_invoke_statement = contains(var.bedrock_capabilities, "invoke") ? [{
-    Effect   = "Allow"
-    Action   = ["bedrock:InvokeModel"]
-    Resource = local.bedrock_model_arns
-    Condition = {
-      StringEquals = {
-        "aws:RequestedRegion" = var.bedrock_allowed_regions
+  bedrock_invoke_statement = contains(var.bedrock_capabilities, "invoke") ? [merge(
+    {
+      Effect   = "Allow"
+      Action   = ["bedrock:InvokeModel"]
+      Resource = local.bedrock_model_arns
+    },
+    length(var.bedrock_allowed_regions) > 0 ? {
+      Condition = {
+        StringEquals = {
+          "aws:RequestedRegion" = var.bedrock_allowed_regions
+        }
       }
-    }
-  }] : []
+    } : {}
+  )] : []
 
-  bedrock_streaming_statement = contains(var.bedrock_capabilities, "streaming") ? [{
-    Effect   = "Allow"
-    Action   = ["bedrock:InvokeModelWithResponseStream"]
-    Resource = local.bedrock_model_arns
-    Condition = {
-      StringEquals = {
-        "aws:RequestedRegion" = var.bedrock_allowed_regions
+  bedrock_streaming_statement = contains(var.bedrock_capabilities, "streaming") ? [merge(
+    {
+      Effect   = "Allow"
+      Action   = ["bedrock:InvokeModelWithResponseStream"]
+      Resource = local.bedrock_model_arns
+    },
+    length(var.bedrock_allowed_regions) > 0 ? {
+      Condition = {
+        StringEquals = {
+          "aws:RequestedRegion" = var.bedrock_allowed_regions
+        }
       }
-    }
-  }] : []
+    } : {}
+  )] : []
 
   bedrock_model_catalog_statement = contains(var.bedrock_capabilities, "model_catalog") ? [{
     Effect = "Allow"

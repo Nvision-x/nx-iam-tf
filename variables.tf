@@ -425,9 +425,9 @@ variable "bedrock_custom_model_arns" {
 }
 
 variable "bedrock_allowed_regions" {
-  description = "List of AWS regions where Bedrock API calls are allowed. Provides additional security control beyond model ARNs."
+  description = "List of AWS regions where Bedrock API calls are allowed. Empty list allows all regions. Provides additional security control beyond model ARNs."
   type        = list(string)
-  default     = ["us-east-1", "us-west-2"]
+  default     = []
 }
 
 ################################################################################
