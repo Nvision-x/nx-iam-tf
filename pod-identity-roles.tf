@@ -47,6 +47,28 @@ resource "aws_iam_role_policy_attachment" "ebs_csi" {
 }
 
 ################################################################################
+# EFS CSI Driver IAM Role
+################################################################################
+
+data "aws_iam_policy" "efs_csi" {
+  count = var.create ? 1 : 0
+  name  = "AmazonEFSCSIDriverPolicy"
+}
+
+resource "aws_iam_role" "efs_csi" {
+  count              = var.create ? 1 : 0
+  name               = "${var.cluster_name}-efs-csi"
+  assume_role_policy = data.aws_iam_policy_document.pod_identity_trust[0].json
+  tags               = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "efs_csi" {
+  count      = var.create ? 1 : 0
+  role       = aws_iam_role.efs_csi[0].name
+  policy_arn = data.aws_iam_policy.efs_csi[0].arn
+}
+
+################################################################################
 # Cluster Autoscaler IAM Role
 ################################################################################
 

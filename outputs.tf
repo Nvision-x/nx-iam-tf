@@ -34,6 +34,11 @@ output "ebs_csi_iam_role_arn" {
   value       = try(aws_iam_role.ebs_csi[0].arn, null)
 }
 
+output "efs_csi_iam_role_arn" {
+  description = "EFS CSI IAM role ARN"
+  value       = try(aws_iam_role.efs_csi[0].arn, null)
+}
+
 output "cluster_autoscaler_iam_role_arn" {
   description = "Cluster Autoscaler IAM role ARN"
   value       = try(aws_iam_role.cluster_autoscaler[0].arn, null)
