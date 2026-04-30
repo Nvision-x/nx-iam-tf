@@ -396,6 +396,112 @@ resource "aws_iam_role_policy_attachment" "app_s3" {
 }
 
 ################################################################################
+# Cross-Account S3 Assume — attaches to app_s3 role (NvisionX side)
+################################################################################
+
+locals {
+  cross_account_assume_enabled = var.create && var.enable_app_s3_access && var.enable_cross_account_s3_assume
+  cross_account_assume_resources = [
+    for name in var.cross_account_assume_role_names : "arn:aws:iam::*:role/${name}"
+  ]
+}
+
+data "aws_iam_policy_document" "app_s3_cross_account_assume" {
+  count = local.cross_account_assume_enabled ? 1 : 0
+
+  statement {
+    effect    = "Allow"
+    actions   = ["sts:AssumeRole"]
+    resources = local.cross_account_assume_resources
+
+    dynamic "condition" {
+      for_each = var.cross_account_assume_target_org_id != "" ? [1] : []
+      content {
+        test     = "StringEquals"
+        variable = "aws:ResourceOrgID"
+        values   = [var.cross_account_assume_target_org_id]
+      }
+    }
+  }
+}
+
+resource "aws_iam_policy" "app_s3_cross_account_assume" {
+  count  = local.cross_account_assume_enabled ? 1 : 0
+  name   = "${aws_iam_role.app_s3[0].name}-cross-account-assume"
+  policy = data.aws_iam_policy_document.app_s3_cross_account_assume[0].json
+  tags   = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "app_s3_cross_account_assume" {
+  count      = local.cross_account_assume_enabled ? 1 : 0
+  role       = aws_iam_role.app_s3[0].name
+  policy_arn = aws_iam_policy.app_s3_cross_account_assume[0].arn
+}
+
+################################################################################
+# Cross-Account S3 Receiver Role (deployed in target accounts)
+################################################################################
+
+data "aws_iam_policy_document" "cross_account_s3_trust" {
+  count = var.create && var.enable_cross_account_s3_role ? 1 : 0
+
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "AWS"
+      identifiers = var.cross_account_s3_source_role_arns
+    }
+
+    dynamic "condition" {
+      for_each = var.cross_account_s3_source_org_id != "" ? [1] : []
+      content {
+        test     = "StringEquals"
+        variable = "aws:PrincipalOrgID"
+        values   = [var.cross_account_s3_source_org_id]
+      }
+    }
+  }
+}
+
+data "aws_iam_policy_document" "cross_account_s3_policy" {
+  count = var.create && var.enable_cross_account_s3_role ? 1 : 0
+
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:ListBucket", "s3:GetBucketLocation"]
+    resources = var.cross_account_s3_bucket_arn_patterns
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = [for arn in var.cross_account_s3_bucket_arn_patterns : "${arn}/*"]
+  }
+}
+
+resource "aws_iam_role" "cross_account_s3" {
+  count              = var.create && var.enable_cross_account_s3_role ? 1 : 0
+  name               = var.cross_account_s3_role_name
+  assume_role_policy = data.aws_iam_policy_document.cross_account_s3_trust[0].json
+  tags               = var.tags
+}
+
+resource "aws_iam_policy" "cross_account_s3" {
+  count  = var.create && var.enable_cross_account_s3_role ? 1 : 0
+  name   = "${var.cross_account_s3_role_name}-policy"
+  policy = data.aws_iam_policy_document.cross_account_s3_policy[0].json
+  tags   = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "cross_account_s3" {
+  count      = var.create && var.enable_cross_account_s3_role ? 1 : 0
+  role       = aws_iam_role.cross_account_s3[0].name
+  policy_arn = aws_iam_policy.cross_account_s3[0].arn
+}
+
+################################################################################
 # Bedrock IAM Role (Optional)
 ################################################################################
 

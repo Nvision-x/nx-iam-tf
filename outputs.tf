@@ -59,6 +59,11 @@ output "app_s3_iam_role_arn" {
   value       = try(aws_iam_role.app_s3[0].arn, null)
 }
 
+output "cross_account_s3_iam_role_arn" {
+  description = "Receiver IAM role ARN assumed by NvisionX for cross-account S3 access"
+  value       = try(aws_iam_role.cross_account_s3[0].arn, null)
+}
+
 output "bedrock_iam_role_arn" {
   description = "Bedrock IAM role ARN"
   value       = try(aws_iam_role.bedrock[0].arn, null)
