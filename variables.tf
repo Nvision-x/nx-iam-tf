@@ -526,6 +526,89 @@ variable "app_s3_bucket_arn_pattern" {
 }
 
 ################################################################################
+# Cross-Account S3 Access — NvisionX side (assume into target accounts)
+################################################################################
+
+variable "enable_cross_account_s3_assume" {
+  description = <<-EOF
+    Attach an sts:AssumeRole permission to the app_s3 role so EKS pods can
+    assume a standardized role in target accounts for content scanning.
+    Requires enable_app_s3_access = true.
+  EOF
+  type        = bool
+  default     = false
+}
+
+variable "cross_account_assume_role_names" {
+  description = <<-EOF
+    Standardized role names that the app_s3 role is allowed to assume in
+    target accounts. Each name expands to arn:aws:iam::*:role/<name>.
+  EOF
+  type        = list(string)
+  default     = ["nvisionx-s3-cross-account"]
+}
+
+variable "cross_account_assume_target_org_id" {
+  description = <<-EOF
+    Optional AWS Organization ID of the target accounts. When set, the
+    sts:AssumeRole permission is gated on aws:ResourceOrgID equals this value,
+    preventing assumption of look-alike roles outside the intended Org.
+    Leave empty to allow assumption regardless of target Org.
+  EOF
+  type        = string
+  default     = ""
+}
+
+################################################################################
+# Cross-Account S3 Access — receiver side (role assumed by NvisionX)
+################################################################################
+
+variable "enable_cross_account_s3_role" {
+  description = <<-EOF
+    Create the receiver IAM role assumed by the NvisionX EKS pods for
+    cross-account S3 content scanning. This is what gets deployed in target
+    (customer) accounts.
+  EOF
+  type        = bool
+  default     = false
+}
+
+variable "cross_account_s3_role_name" {
+  description = "Name of the receiver IAM role assumed by NvisionX."
+  type        = string
+  default     = "nvisionx-s3-cross-account"
+}
+
+variable "cross_account_s3_source_role_arns" {
+  description = <<-EOF
+    Source role ARNs allowed to assume the receiver role. Typically the
+    NvisionX EKS Pod Identity role ARN, e.g.
+    "arn:aws:iam::769537049595:role/eks-sandbox-app-s3-access".
+  EOF
+  type        = list(string)
+  default     = []
+}
+
+variable "cross_account_s3_source_org_id" {
+  description = <<-EOF
+    Optional AWS Organization ID of the source (NvisionX) account. When set,
+    the trust policy adds an aws:PrincipalOrgID condition to defense-in-depth
+    scope assumption to principals in this Org.
+  EOF
+  type        = string
+  default     = ""
+}
+
+variable "cross_account_s3_bucket_arn_patterns" {
+  description = <<-EOF
+    S3 bucket ARN patterns the receiver role is allowed to read. Supports
+    wildcards. Example: ["arn:aws:s3:::acme-prod-*"].
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:s3:::*"]
+}
+
+################################################################################
 # VPC Flow Logs IAM Role
 ################################################################################
 
