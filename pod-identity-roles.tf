@@ -410,8 +410,11 @@ data "aws_iam_policy_document" "app_s3_cross_account_assume" {
   count = local.cross_account_assume_enabled ? 1 : 0
 
   statement {
-    effect    = "Allow"
-    actions   = ["sts:AssumeRole"]
+    effect = "Allow"
+    # sts:TagSession is required because EKS Pod Identity forwards session
+    # tags during chained AssumeRole. Without it the call is rejected with
+    # "not authorized to perform: sts:TagSession on resource: <target role>".
+    actions   = ["sts:AssumeRole", "sts:TagSession"]
     resources = local.cross_account_assume_resources
 
     dynamic "condition" {
@@ -446,8 +449,10 @@ data "aws_iam_policy_document" "cross_account_s3_trust" {
   count = var.create && var.enable_cross_account_s3_role ? 1 : 0
 
   statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
+    effect = "Allow"
+    # sts:TagSession must be allowed on the trust policy too — EKS Pod
+    # Identity forwards session tags during the chained AssumeRole call.
+    actions = ["sts:AssumeRole", "sts:TagSession"]
 
     principals {
       type        = "AWS"
