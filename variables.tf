@@ -625,7 +625,7 @@ variable "enable_argocd_caller_role" {
 variable "argocd_caller_role_name" {
   description = "Name of the ArgoCD cross-account caller IAM role."
   type        = string
-  default     = "argocd-argocd-caller"
+  default     = "argocd-caller"
 }
 
 variable "argocd_caller_target_role_arns" {
