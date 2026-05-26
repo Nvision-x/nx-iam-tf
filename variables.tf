@@ -609,6 +609,40 @@ variable "cross_account_s3_bucket_arn_patterns" {
 }
 
 ################################################################################
+# Knowledge Hub Workload Role
+################################################################################
+
+variable "enable_knowledge_hub_role" {
+  description = <<-EOF
+    Create the knowledge-hub workload IAM role. Bound via Pod Identity to a
+    single service account. Bundles Bedrock invoke (reuses the policy from
+    enable_bedrock_access), S3 Vectors r/w, and Neptune IAM-auth connect.
+    Requires enable_bedrock_access = true.
+  EOF
+  type        = bool
+  default     = false
+}
+
+variable "knowledge_hub_role_name" {
+  description = "Name of the knowledge-hub workload IAM role"
+  type        = string
+  default     = ""
+}
+
+variable "knowledge_hub_s3_vectors_bucket_name" {
+  description = <<-EOF
+    Name of the S3 Vectors vector bucket the knowledge-hub role can read/write.
+    ARN is constructed from region + account + name (all plan-time-known) to
+    avoid a module-level cycle with nx-infra-tf. Empty skips this policy.
+  EOF
+  type        = string
+  default     = ""
+}
+
+# Neptune access policy is created in nx-infra-tf (where cluster_resource_id
+# is available) and attached to the role created here. No variable needed.
+
+################################################################################
 # VPC Flow Logs IAM Role
 ################################################################################
 
