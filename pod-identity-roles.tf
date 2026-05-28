@@ -638,3 +638,71 @@ resource "aws_iam_role_policy_attachment" "bedrock" {
   role       = aws_iam_role.bedrock[0].name
   policy_arn = aws_iam_policy.bedrock[0].arn
 }
+
+################################################################################
+# ArgoCD Cross-Account Caller IAM Role (deployed in the cluster hosting ArgoCD)
+################################################################################
+
+resource "aws_iam_role" "argocd_caller" {
+  count              = var.create && var.enable_argocd_caller_role ? 1 : 0
+  name               = var.argocd_caller_role_name
+  assume_role_policy = data.aws_iam_policy_document.pod_identity_trust[0].json
+  tags               = var.tags
+}
+
+locals {
+  argocd_caller_assume_enabled = var.create && var.enable_argocd_caller_role && length(var.argocd_caller_target_role_arns) > 0
+}
+
+data "aws_iam_policy_document" "argocd_caller_assume" {
+  count = local.argocd_caller_assume_enabled ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    # sts:TagSession is required because EKS Pod Identity forwards session
+    # tags during chained AssumeRole. Without it the call is rejected with
+    # "not authorized to perform: sts:TagSession on resource: <target role>".
+    actions   = ["sts:AssumeRole", "sts:TagSession"]
+    resources = var.argocd_caller_target_role_arns
+  }
+}
+
+resource "aws_iam_policy" "argocd_caller_assume" {
+  count  = local.argocd_caller_assume_enabled ? 1 : 0
+  name   = "${var.argocd_caller_role_name}-assume"
+  policy = data.aws_iam_policy_document.argocd_caller_assume[0].json
+  tags   = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "argocd_caller_assume" {
+  count      = local.argocd_caller_assume_enabled ? 1 : 0
+  role       = aws_iam_role.argocd_caller[0].name
+  policy_arn = aws_iam_policy.argocd_caller_assume[0].arn
+}
+
+################################################################################
+# ArgoCD Cross-Account Target IAM Role (deployed in each managed cluster's account)
+################################################################################
+
+data "aws_iam_policy_document" "argocd_target_trust" {
+  count = var.create && var.enable_argocd_target_role ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    # sts:TagSession must be allowed on the trust policy too — EKS Pod
+    # Identity forwards session tags during the chained AssumeRole call.
+    actions = ["sts:AssumeRole", "sts:TagSession"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [var.argocd_caller_role_arn]
+    }
+  }
+}
+
+resource "aws_iam_role" "argocd_target" {
+  count              = var.create && var.enable_argocd_target_role ? 1 : 0
+  name               = coalesce(var.argocd_target_role_name, "${var.cluster_name}-argocd-target")
+  assume_role_policy = data.aws_iam_policy_document.argocd_target_trust[0].json
+  tags               = var.tags
+}
