@@ -25,12 +25,20 @@ locals {
 data "aws_iam_policy_document" "knowledge_hub_s3_vectors" {
   count = local.knowledge_hub_s3v_create ? 1 : 0
 
+  # ListVectorBuckets is an account-level action — IAM rejects it when scoped
+  # to a single bucket ARN, so it lives in its own *-scoped statement.
+  statement {
+    sid       = "S3VectorsAccountList"
+    effect    = "Allow"
+    actions   = ["s3vectors:ListVectorBuckets"]
+    resources = ["*"]
+  }
+
   statement {
     sid    = "S3VectorsBucketReadWrite"
     effect = "Allow"
     actions = [
       "s3vectors:GetVectorBucket",
-      "s3vectors:ListVectorBuckets",
       "s3vectors:CreateIndex",
       "s3vectors:DeleteIndex",
       "s3vectors:GetIndex",
@@ -64,6 +72,17 @@ resource "aws_iam_role" "knowledge_hub" {
   name               = var.knowledge_hub_role_name
   assume_role_policy = data.aws_iam_policy_document.pod_identity_trust[0].json
   tags               = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = var.enable_bedrock_access
+      error_message = "enable_knowledge_hub_role requires enable_bedrock_access = true (knowledge-hub bundles Bedrock invoke)."
+    }
+    precondition {
+      condition     = var.knowledge_hub_role_name != ""
+      error_message = "knowledge_hub_role_name must be set when enable_knowledge_hub_role = true."
+    }
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "knowledge_hub_bedrock" {
