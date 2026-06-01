@@ -74,6 +74,11 @@ output "bedrock_iam_policy_arn" {
   value       = try(aws_iam_policy.bedrock[0].arn, null)
 }
 
+output "knowledge_hub_iam_role_arn" {
+  description = "Knowledge Hub workload IAM role ARN"
+  value       = try(aws_iam_role.knowledge_hub[0].arn, null)
+}
+
 ################################################################################
 # ArgoCD Cross-Account Roles
 ################################################################################
