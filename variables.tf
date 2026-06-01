@@ -609,6 +609,68 @@ variable "cross_account_s3_bucket_arn_patterns" {
 }
 
 ################################################################################
+# ArgoCD Cross-Account Caller Role (deployed in the cluster hosting ArgoCD)
+################################################################################
+
+variable "enable_argocd_caller_role" {
+  description = <<-EOF
+    Create the Pod Identity IAM role used by argocd-server and
+    argocd-application-controller to assume per-target IAM roles in
+    other accounts for managing remote EKS clusters.
+  EOF
+  type        = bool
+  default     = false
+}
+
+variable "argocd_caller_role_name" {
+  description = "Name of the ArgoCD cross-account caller IAM role."
+  type        = string
+  default     = "argocd-caller"
+}
+
+variable "argocd_caller_target_role_arns" {
+  description = <<-EOF
+    Full ARNs of the target IAM roles the ArgoCD caller role is allowed to
+    assume. Each target lives in a managed cluster's account and is the role
+    ArgoCD impersonates via awsAuthConfig in the cluster Secret.
+  EOF
+  type        = list(string)
+  default     = []
+}
+
+################################################################################
+# ArgoCD Cross-Account Target Role (deployed in each managed cluster's account)
+################################################################################
+
+variable "enable_argocd_target_role" {
+  description = <<-EOF
+    Create the IAM role that a remote ArgoCD caller role assumes to manage
+    this cluster. Pair with an EKS access entry (in nx-infra-tf) granting
+    this role cluster-admin on the local EKS cluster.
+  EOF
+  type        = bool
+  default     = false
+}
+
+variable "argocd_target_role_name" {
+  description = <<-EOF
+    Name of the ArgoCD cross-account target IAM role. Defaults to
+    "<cluster_name>-argocd-target" when left empty.
+  EOF
+  type        = string
+  default     = ""
+}
+
+variable "argocd_caller_role_arn" {
+  description = <<-EOF
+    ARN of the remote ArgoCD caller role allowed to assume this target role.
+    Required when enable_argocd_target_role is true.
+  EOF
+  type        = string
+  default     = ""
+}
+
+################################################################################
 # Knowledge Hub Workload Role
 ################################################################################
 

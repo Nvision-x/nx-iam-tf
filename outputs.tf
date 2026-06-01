@@ -80,6 +80,30 @@ output "knowledge_hub_iam_role_arn" {
 }
 
 ################################################################################
+# ArgoCD Cross-Account Roles
+################################################################################
+
+output "argocd_caller_iam_role_arn" {
+  description = "ArgoCD cross-account caller IAM role ARN (Pod Identity for argocd-server / argocd-application-controller)"
+  value       = try(aws_iam_role.argocd_caller[0].arn, null)
+}
+
+output "argocd_caller_iam_role_name" {
+  description = "ArgoCD cross-account caller IAM role name"
+  value       = try(aws_iam_role.argocd_caller[0].name, null)
+}
+
+output "argocd_target_iam_role_arn" {
+  description = "ArgoCD cross-account target IAM role ARN (assumed by remote ArgoCD)"
+  value       = try(aws_iam_role.argocd_target[0].arn, null)
+}
+
+output "argocd_target_iam_role_name" {
+  description = "ArgoCD cross-account target IAM role name"
+  value       = try(aws_iam_role.argocd_target[0].name, null)
+}
+
+################################################################################
 # VPC Flow Logs
 ################################################################################
 
