@@ -424,6 +424,28 @@ variable "bedrock_custom_model_arns" {
   default     = ["arn:aws:bedrock:*::foundation-model/*"]
 }
 
+variable "bedrock_include_inference_profiles" {
+  description = <<-EOF
+    Append inference-profile ARNs to the invoke/streaming statements. Most current
+    Bedrock models (e.g. Anthropic Claude, cross-region profiles) are invoked through
+    an inference profile, and IAM authorizes the call against the inference-profile ARN
+    in addition to the underlying foundation-model ARN. Leave false to preserve the
+    foundation-model-only behavior for existing consumers.
+  EOF
+  type        = bool
+  default     = false
+}
+
+variable "bedrock_inference_profile_arns" {
+  description = <<-EOF
+    Inference-profile ARNs to allow when bedrock_include_inference_profiles = true. Examples:
+    - All profiles, all regions: ["arn:aws:bedrock:*:*:inference-profile/*"]
+    - Account-scoped: ["arn:aws:bedrock:*:123456789012:inference-profile/*"]
+  EOF
+  type        = list(string)
+  default     = ["arn:aws:bedrock:*:*:inference-profile/*"]
+}
+
 variable "bedrock_allowed_regions" {
   description = "List of AWS regions where Bedrock API calls are allowed. Empty list allows all regions. Provides additional security control beyond model ARNs."
   type        = list(string)

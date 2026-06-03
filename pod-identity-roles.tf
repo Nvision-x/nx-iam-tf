@@ -537,12 +537,20 @@ locals {
     "arn:aws:bedrock:*::foundation-model/${local.bedrock_provider_prefixes[provider]}*"
   ]
 
+  # Resources for invoke/streaming: foundation-model ARNs, plus inference-profile
+  # ARNs when enabled (invoking via a profile is authorized against the profile ARN
+  # as well as the underlying foundation-model ARN).
+  bedrock_invoke_resources = concat(
+    local.bedrock_model_arns,
+    var.bedrock_include_inference_profiles ? var.bedrock_inference_profile_arns : []
+  )
+
   # Build policy statements based on capabilities
   bedrock_invoke_statement = contains(var.bedrock_capabilities, "invoke") ? [merge(
     {
       Effect   = "Allow"
       Action   = ["bedrock:InvokeModel"]
-      Resource = local.bedrock_model_arns
+      Resource = local.bedrock_invoke_resources
     },
     length(var.bedrock_allowed_regions) > 0 ? {
       Condition = {
@@ -557,7 +565,7 @@ locals {
     {
       Effect   = "Allow"
       Action   = ["bedrock:InvokeModelWithResponseStream"]
-      Resource = local.bedrock_model_arns
+      Resource = local.bedrock_invoke_resources
     },
     length(var.bedrock_allowed_regions) > 0 ? {
       Condition = {
