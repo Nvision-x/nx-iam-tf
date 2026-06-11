@@ -554,7 +554,11 @@ locals {
     },
     length(var.bedrock_allowed_regions) > 0 ? {
       Condition = {
-        StringEquals = {
+        # StringLike (not StringEquals) so entries may use wildcards, e.g.
+        # ["us-*"] to cover all US regions reached by `us.` cross-region
+        # inference profiles. Literal values without wildcards behave
+        # identically to StringEquals, so this is safe for existing consumers.
+        StringLike = {
           "aws:RequestedRegion" = var.bedrock_allowed_regions
         }
       }
@@ -569,7 +573,11 @@ locals {
     },
     length(var.bedrock_allowed_regions) > 0 ? {
       Condition = {
-        StringEquals = {
+        # StringLike (not StringEquals) so entries may use wildcards, e.g.
+        # ["us-*"] to cover all US regions reached by `us.` cross-region
+        # inference profiles. Literal values without wildcards behave
+        # identically to StringEquals, so this is safe for existing consumers.
+        StringLike = {
           "aws:RequestedRegion" = var.bedrock_allowed_regions
         }
       }
