@@ -236,6 +236,12 @@ variable "eks_managed_node_group_defaults" {
   default     = {}
 }
 
+variable "attach_cloudwatch_agent_policy" {
+  description = "Attach AWS-managed CloudWatchAgentServerPolicy to every managed node-group role. Required for the amazon-cloudwatch-observability agent (Container Insights) to publish metrics/logs when the cluster uses the node role (no Pod Identity/IRSA for the agent)."
+  type        = bool
+  default     = true
+}
+
 
 variable "create_bastion_role" {
   description = "Whether to create the IAM role and instance profile for Bastion"
