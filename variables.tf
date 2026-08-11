@@ -735,3 +735,9 @@ variable "create_vpc_flow_logs_role" {
   type        = bool
   default     = false
 }
+
+variable "bastion_least_privilege" {
+  description = "When true, the bastion role drops AmazonEKSClusterPolicy and AmazonEKSServicePolicy (EKS control-plane service policies that grant EC2/ELB/autoscaling writes) and its BastionEKSCluster policy narrows from eks:* to DescribeCluster/ListClusters. Anyone with a shell on the bastion inherits this role, so accounts holding customer data should set it true. Defaults to false to preserve existing behaviour on internal environments."
+  type        = bool
+  default     = false
+}
