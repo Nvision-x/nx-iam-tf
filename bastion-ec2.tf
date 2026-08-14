@@ -16,13 +16,13 @@ resource "aws_iam_role" "bastion_eks_admin" {
 }
 
 resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
-  count      = var.create_bastion_role ? 1 : 0
+  count      = var.create_bastion_role && !var.bastion_least_privilege ? 1 : 0
   role       = aws_iam_role.bastion_eks_admin[0].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
 resource "aws_iam_role_policy_attachment" "eks_service_policy" {
-  count      = var.create_bastion_role ? 1 : 0
+  count      = var.create_bastion_role && !var.bastion_least_privilege ? 1 : 0
   role       = aws_iam_role.bastion_eks_admin[0].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 }
@@ -49,17 +49,19 @@ resource "aws_iam_policy" "eks_access" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = var.bastion_least_privilege ? [
+      {
+        Effect   = "Allow"
+        Action   = ["eks:DescribeCluster", "eks:ListClusters"]
+        Resource = ["*"]
+      }
+      ] : [
       {
         Effect = "Allow"
-        Action = [
-          "eks:*"
-        ]
+        Action = ["eks:*"]
         Resource = [
-          "arn:aws:eks:${var.region}:${data.aws_caller_identity.current[0].account_id}:cluster/${var
-          .cluster_name}",
-          "arn:aws:eks:${var.region}:${data.aws_caller_identity.current[0].account_id}:cluster/${var
-          .cluster_name}/*"
+          "arn:aws:eks:${var.region}:${data.aws_caller_identity.current[0].account_id}:cluster/${var.cluster_name}",
+          "arn:aws:eks:${var.region}:${data.aws_caller_identity.current[0].account_id}:cluster/${var.cluster_name}/*"
         ]
       }
     ]
