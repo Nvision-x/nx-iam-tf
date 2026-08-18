@@ -243,6 +243,12 @@ variable "create_bastion_role" {
   default     = false
 }
 
+variable "tailscale_authkey_ssm_parameter_name" {
+  description = "SSM parameter holding the tailscale auth key the bastion registers with"
+  type        = string
+  default     = "/nx/tailscale/bastion-authkey"
+}
+
 # Cluster Autoscaler and Load Balancer Controller Roles 
 
 variable "namespace" {
