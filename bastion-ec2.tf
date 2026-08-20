@@ -100,3 +100,39 @@ resource "aws_iam_role_policy_attachment" "bastion_opensearch_snapshot" {
   policy_arn = aws_iam_policy.bastion_opensearch_snapshot[0].arn
 }
 
+
+# IAM policy to allow bastion to read its tailscale auth key
+resource "aws_iam_policy" "bastion_tailscale_authkey" {
+  count       = var.create_bastion_role ? 1 : 0
+  name        = "BastionTailscaleAuthKey-${var.cluster_name}"
+  path        = "/"
+  description = "Allow bastion to read the tailscale auth key from SSM"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ssm:GetParameter"
+        Resource = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current[0].account_id}:parameter${var.tailscale_authkey_ssm_parameter_name}"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "kms:Decrypt"
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "kms:ViaService" = "ssm.${var.region}.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# Attach tailscale auth key policy to bastion role
+resource "aws_iam_role_policy_attachment" "bastion_tailscale_authkey" {
+  count      = var.create_bastion_role ? 1 : 0
+  role       = aws_iam_role.bastion_eks_admin[0].name
+  policy_arn = aws_iam_policy.bastion_tailscale_authkey[0].arn
+}
