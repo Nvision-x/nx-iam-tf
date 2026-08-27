@@ -30,6 +30,7 @@ All Pod Identity roles use the `pods.eks.amazonaws.com` service principal trust 
 - Bastion EC2 instance role and profile (EKS admin access + SSM)
 - OpenSearch snapshot role
 - VPC Flow Logs role
+- Grafana cross-account CloudWatch read role (assumed by a Grafana hub role in the monitoring account)
 
 ---
 
@@ -100,6 +101,9 @@ module "nx-iam" {
 | `create_bastion_role` | Create bastion EC2 role | `false` |
 | `enable_opensearch` | Create OpenSearch snapshot role | `false` |
 | `create_vpc_flow_logs_role` | Create VPC flow logs role | `false` |
+| `enable_grafana_cloudwatch_read_role` | Create the cross-account CloudWatch read role for Grafana | `false` |
+| `grafana_cloudwatch_hub_role_arns` | Hub role ARNs allowed to assume it (required when enabled) | `[]` |
+| `grafana_cloudwatch_read_role_name` | Role name, must match what the hub policy allows | `grafana-cloudwatch-read` |
 
 ---
 
@@ -120,6 +124,7 @@ module "nx-iam" {
 | `bastion_eks_admin_role_arn` | Bastion EC2 role ARN |
 | `bastion_iam_instance_profile_name` | Bastion instance profile name |
 | `vpc_flow_logs_role_arn` | VPC Flow Logs role ARN |
+| `grafana_cloudwatch_read_role_arn` | Grafana cross-account CloudWatch read role ARN |
 
 ---
 

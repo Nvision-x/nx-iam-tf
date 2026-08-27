@@ -799,3 +799,29 @@ variable "monitoring_chatbot_role_name" {
   type        = string
   default     = ""
 }
+
+# ------------------- Grafana cross-account CloudWatch read ----------------
+
+variable "enable_grafana_cloudwatch_read_role" {
+  description = "Create the cross-account CloudWatch read role assumed by Grafana's hub role in the monitoring account"
+  type        = bool
+  default     = false
+}
+
+variable "grafana_cloudwatch_hub_role_arns" {
+  description = "Hub role ARNs in the Grafana/monitoring account allowed to assume the CloudWatch read role. Required when enable_grafana_cloudwatch_read_role is true."
+  type        = list(string)
+  default     = []
+}
+
+variable "grafana_cloudwatch_read_role_name" {
+  description = "Name of the CloudWatch read role. Must match the role name the hub role's sts:AssumeRole policy allows."
+  type        = string
+  default     = "grafana-cloudwatch-read"
+}
+
+variable "grafana_cloudwatch_max_session_duration" {
+  description = "Max session duration in seconds for the Grafana CloudWatch read role"
+  type        = number
+  default     = 3600
+}
