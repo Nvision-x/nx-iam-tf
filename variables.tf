@@ -775,7 +775,7 @@ variable "enable_knowledge_hub_text_cache_access" {
 }
 
 variable "knowledge_hub_text_cache_bucket_name" {
-  description = "Text content cache bucket name. Empty means the nvisionx-text-content-cache-* prefix, since nx-infra-tf appends a random_id suffix."
+  description = "Text content cache bucket name, from nx-infra-tf's text_content_cache_bucket_name output. Required when enable_knowledge_hub_text_cache_access is true — the bucket carries a random_id suffix, so the name cannot be derived here."
   type        = string
   default     = ""
 }
