@@ -129,3 +129,17 @@ module "nx-iam" {
 |------|---------|
 | Terraform | >= 1.5.7 |
 | AWS Provider | ~> 6.0 |
+
+---
+
+## All IAM lives here
+
+nx-infra-tf creates no IAM identities and enforces that in CI. Roles, policies
+and attachments belong in this module; nx-infra-tf consumes their ARNs.
+
+When a policy needs an ARN that only exists once the resource does, build the
+ARN here from plan-time-known values instead of taking an nx-infra-tf output as
+an input — nx-infra-tf already depends on this module, so feeding a value
+backwards risks a module cycle. `knowledge-hub-data-access.tf` shows the
+pattern, including the scope each fallback gives up and the override variable
+that tightens it again.
