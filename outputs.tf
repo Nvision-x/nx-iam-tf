@@ -111,3 +111,18 @@ output "vpc_flow_logs_role_arn" {
   value       = try(aws_iam_role.vpc_flow_logs[0].arn, null)
   description = "IAM Role ARN for VPC flow logs"
 }
+
+output "monitoring_chatbot_role_arn" {
+  description = "AWS Chatbot service role ARN, passed to nx-infra-tf as monitoring_chatbot_role_arn"
+  value       = try(aws_iam_role.monitoring_chatbot[0].arn, null)
+}
+
+output "knowledge_hub_neptune_policy_arn" {
+  description = "Neptune connect policy ARN attached to the knowledge-hub role"
+  value       = try(aws_iam_policy.knowledge_hub_neptune[0].arn, null)
+}
+
+output "knowledge_hub_text_cache_policy_arn" {
+  description = "Text content cache read policy ARN attached to the knowledge-hub role"
+  value       = try(aws_iam_policy.knowledge_hub_text_cache_read[0].arn, null)
+}
