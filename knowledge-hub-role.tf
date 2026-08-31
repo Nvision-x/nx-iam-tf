@@ -1,15 +1,12 @@
 # Knowledge Hub workload role — single Pod Identity role bound to the
 # knowledge-hub service account.
 #
-# Capability split (to avoid a module-level cycle with nx-infra-tf):
+# Capabilities:
 #   - Bedrock invoke: attaches the existing aws_iam_policy.bedrock here
 #     (so enable_bedrock_access must be true alongside this role).
-#   - S3 Vectors r/w: scoped to a specific vector bucket by NAME. The ARN
-#     is built from region + account_id + name (all plan-time-known), so we
-#     don't need a resource output from nx-infra-tf.
-#   - Neptune IAM-auth connect: NOT created here. The cluster_resource_id
-#     only exists after Neptune is provisioned in nx-infra-tf, so the
-#     Neptune policy + attachment are created there against this role ARN.
+#   - S3 Vectors r/w: scoped to a specific vector bucket by NAME, which the
+#     env passes as a plain variable rather than an nx-infra-tf output.
+#   - Neptune connect and text-cache read: knowledge-hub-data-access.tf.
 
 ################################################################################
 # S3 Vectors policy
