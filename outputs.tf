@@ -126,3 +126,8 @@ output "knowledge_hub_text_cache_policy_arn" {
   description = "Text content cache read policy ARN attached to the knowledge-hub role"
   value       = try(aws_iam_policy.knowledge_hub_text_cache_read[0].arn, null)
 }
+
+output "grafana_cloudwatch_read_role_arn" {
+  description = "Cross-account CloudWatch read role ARN assumed by Grafana's hub role"
+  value       = try(aws_iam_role.grafana_cloudwatch_read[0].arn, null)
+}
