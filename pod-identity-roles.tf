@@ -283,20 +283,32 @@ data "aws_iam_policy_document" "postgres_backup_policy" {
     resources = ["arn:aws:s3:::nvisionx*/*"]
   }
 
-  # RDS backup permissions
+  # RDS Describe* does not support resource-level permissions, so these must
+  # sit on "*". They are read-only metadata calls.
   statement {
     effect = "Allow"
     actions = [
       "rds:DescribeDBSnapshots",
+      "rds:DescribeDBInstances"
+    ]
+    resources = ["*"]
+  }
+
+  # Mutating snapshot permissions, scoped to this deployment's snapshots.
+  # Previously paired with an unscoped "snapshot:*", which let this role call
+  # ModifyDBSnapshotAttribute on ANY RDS snapshot in the account -- i.e. share
+  # another tenant's snapshot out to a third-party account.
+  statement {
+    effect = "Allow"
+    actions = [
       "rds:CreateDBSnapshot",
       "rds:DeleteDBSnapshot",
       "rds:ModifyDBSnapshotAttribute",
-      "rds:DescribeDBInstances",
       "rds:CopyDBSnapshot"
     ]
     resources = [
       "arn:aws:rds:${var.region}:${data.aws_caller_identity.current[0].account_id}:db:${var.db_identifier}",
-      "arn:aws:rds:${var.region}:${data.aws_caller_identity.current[0].account_id}:snapshot:*"
+      "arn:aws:rds:${var.region}:${data.aws_caller_identity.current[0].account_id}:snapshot:${var.db_identifier}-*"
     ]
   }
 
