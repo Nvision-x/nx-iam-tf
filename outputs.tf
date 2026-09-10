@@ -126,3 +126,8 @@ output "knowledge_hub_text_cache_policy_arn" {
   description = "Text content cache read policy ARN attached to the knowledge-hub role"
   value       = try(aws_iam_policy.knowledge_hub_text_cache_read[0].arn, null)
 }
+
+output "bastion_heartbeat_role_arn" {
+  description = "Bastion heartbeat Lambda execution role ARN, passed to nx-infra-tf as bastion_heartbeat_role_arn"
+  value       = try(aws_iam_role.bastion_heartbeat[0].arn, null)
+}

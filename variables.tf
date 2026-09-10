@@ -799,3 +799,47 @@ variable "monitoring_chatbot_role_name" {
   type        = string
   default     = ""
 }
+
+# ------------------- Bastion heartbeat role ------------------------------
+
+variable "enable_bastion_heartbeat_role" {
+  description = "Create the execution role for nx-infra-tf's bastion heartbeat Lambda"
+  type        = bool
+  default     = false
+}
+
+variable "bastion_heartbeat_role_name" {
+  description = "Override the heartbeat role name, defaults to <cluster_name>-bastion-heartbeat. Must match the Lambda function name nx-infra-tf derives, since the log permission is scoped to it."
+  type        = string
+  default     = ""
+}
+
+variable "bastion_heartbeat_metric_namespace" {
+  description = "CloudWatch namespace the PutMetricData permission is conditioned on. Must match nx-infra-tf's bastion_heartbeat_metric_namespace."
+  type        = string
+  default     = "NX/Bastion"
+}
+
+variable "bastion_heartbeat_tailscale_secret_arn" {
+  description = "Secrets Manager secret ARN holding the Tailscale API credentials the probe reads. Empty grants no secretsmanager access."
+  type        = string
+  default     = ""
+}
+
+variable "enable_bastion_heartbeat_send_command" {
+  description = "Allow the heartbeat role to run the tailscaled service check (ssm:SendCommand with AWS-RunShellScript, targets narrowed by Name tag)"
+  type        = bool
+  default     = true
+}
+
+variable "bastion_heartbeat_instance_name_tag" {
+  description = "Name tag pattern of the instances the heartbeat may SendCommand to. Set to the bastion's Name tag; \"*\" allows any tagged instance."
+  type        = string
+  default     = "*"
+}
+
+variable "enable_bastion_heartbeat_vpc_access" {
+  description = "Attach AWSLambdaVPCAccessExecutionRole for the VPC-attached SSH reachability check"
+  type        = bool
+  default     = true
+}
