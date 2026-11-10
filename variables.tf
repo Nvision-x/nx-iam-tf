@@ -329,6 +329,12 @@ variable "bedrock_service_accounts" {
 # Bedrock Capabilities - Control which API operations are allowed
 ################################################################################
 
+variable "bedrock_allow_marketplace_subscribe" {
+  description = "Let the Bedrock role create the per-model AWS Marketplace subscription on a model's first call (aws-marketplace:ViewSubscriptions/Subscribe). Without it, every new model in an account needs one admin call before workloads can use it."
+  type        = bool
+  default     = true
+}
+
 variable "bedrock_capabilities" {
   description = <<-EOF
     List of Bedrock capabilities to enable (only applies when enable_bedrock_access = true).
