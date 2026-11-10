@@ -93,6 +93,7 @@ module "nx-iam" {
 | `app_s3_bucket_arn_pattern` | S3 bucket ARN pattern for access | `arn:aws:s3:::nvisionx*` |
 | `enable_bedrock_access` | Create Bedrock access role | `false` |
 | `bedrock_role_name` | Bedrock role name | `""` |
+| `bedrock_allow_marketplace_subscribe` | Let the Bedrock role create the per-model Marketplace subscription on first call | `true` |
 
 ### Other
 | Name | Description | Default |

@@ -619,6 +619,16 @@ locals {
     Resource = var.bedrock_guardrail_arns
   }] : []
 
+  # Bedrock subscribes an account to a model on its first call; without these the workload gets AccessDenied until an admin calls it once
+  bedrock_marketplace_statement = var.bedrock_allow_marketplace_subscribe ? [{
+    Effect = "Allow"
+    Action = [
+      "aws-marketplace:ViewSubscriptions",
+      "aws-marketplace:Subscribe"
+    ]
+    Resource = "*"
+  }] : []
+
   # Combine all enabled statements
   bedrock_policy_statements = concat(
     local.bedrock_invoke_statement,
@@ -626,7 +636,8 @@ locals {
     local.bedrock_model_catalog_statement,
     local.bedrock_agents_statement,
     local.bedrock_knowledge_bases_statement,
-    local.bedrock_guardrails_statement
+    local.bedrock_guardrails_statement,
+    local.bedrock_marketplace_statement
   )
 }
 
