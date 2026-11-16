@@ -843,3 +843,17 @@ variable "enable_bastion_heartbeat_vpc_access" {
   type        = bool
   default     = true
 }
+
+# ------------------- Database auto-alarms role ---------------------------
+
+variable "enable_db_auto_alarms_role" {
+  description = "Create the execution role for nx-infra-tf's database auto-alarms Lambda"
+  type        = bool
+  default     = false
+}
+
+variable "db_auto_alarms_role_name" {
+  description = "Override the auto-alarms role name, defaults to <cluster_name>-db-auto-alarms. Must match the Lambda function name nx-infra-tf derives, since the log and alarm permissions are scoped to it."
+  type        = string
+  default     = ""
+}

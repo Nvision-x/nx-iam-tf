@@ -131,3 +131,8 @@ output "bastion_heartbeat_role_arn" {
   description = "Bastion heartbeat Lambda execution role ARN, passed to nx-infra-tf as bastion_heartbeat_role_arn"
   value       = try(aws_iam_role.bastion_heartbeat[0].arn, null)
 }
+
+output "db_auto_alarms_role_arn" {
+  description = "Database auto-alarms Lambda execution role ARN, passed to nx-infra-tf as db_auto_alarms_role_arn"
+  value       = try(aws_iam_role.db_auto_alarms[0].arn, null)
+}

@@ -30,6 +30,7 @@ All Pod Identity roles use the `pods.eks.amazonaws.com` service principal trust 
 - Bastion EC2 instance role and profile (EKS admin access + SSM)
 - OpenSearch snapshot role
 - VPC Flow Logs role
+- Database auto-alarms Lambda role (`enable_db_auto_alarms_role`): describes DB instances, reads alarms/metrics, and writes only alarms named `<cluster_name>-db-auto-alarms.*`
 
 ---
 
@@ -100,6 +101,7 @@ module "nx-iam" {
 | `create_bastion_role` | Create bastion EC2 role | `false` |
 | `enable_opensearch` | Create OpenSearch snapshot role | `false` |
 | `create_vpc_flow_logs_role` | Create VPC flow logs role | `false` |
+| `enable_db_auto_alarms_role` | Create the role for nx-infra-tf's database auto-alarms Lambda | `false` |
 
 ---
 
@@ -120,6 +122,7 @@ module "nx-iam" {
 | `bastion_eks_admin_role_arn` | Bastion EC2 role ARN |
 | `bastion_iam_instance_profile_name` | Bastion instance profile name |
 | `vpc_flow_logs_role_arn` | VPC Flow Logs role ARN |
+| `db_auto_alarms_role_arn` | Database auto-alarms Lambda role ARN (pass to nx-infra-tf) |
 
 ---
 
